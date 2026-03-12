@@ -1,14 +1,34 @@
 import { Module } from '@nestjs/common';
 
 import { JwtGuard } from 'src/common/guards';
-import { CancelBookingHandler } from './application/use-cases/cancel-booking/cancel-booking.handler';
-import { CreateBookingHandler } from './application/use-cases/create-booking/create-booking.handler';
-import { GetMyBookingsHandler } from './application/use-cases/get-my-bookings/get-my-bookings.handler';
+import { CancelTicketCommandHandler } from './application/commands/cancel-ticket.command';
+import { CreateTicketCommandHandler } from './application/commands/create-ticket.command';
+import { GetMyBookingsQueryHandler } from './application/queries/get-my-bookings.query';
+import { GetSeatQueryHandler } from './application/queries/get-seat.query';
+import { CancelBookingUseCase } from './application/use-cases/cancel-booking.use-case';
+import { CreateBookingUseCase } from './application/use-cases/create-booking.use-case';
+import { GetMyBookingsUseCase } from './application/use-cases/get-my-bookings.use-case';
 import { BookingConfirmConsumer } from './booking-confirm.consumer';
-import { BookingHttpController } from './presenter/http/booking.http-controller';
+import { BookingHttpController } from './presenter/http/booking.http.controller';
 
 @Module({
   controllers: [BookingHttpController],
-  providers: [CreateBookingHandler, CancelBookingHandler, GetMyBookingsHandler, BookingConfirmConsumer, JwtGuard],
+  providers: [
+    /** query-handlers */
+    GetSeatQueryHandler,
+    GetMyBookingsQueryHandler,
+
+    /** command-handlers */
+    CreateTicketCommandHandler,
+    CancelTicketCommandHandler,
+
+    /** use-cases */
+    CreateBookingUseCase,
+    CancelBookingUseCase,
+    GetMyBookingsUseCase,
+
+    BookingConfirmConsumer,
+    JwtGuard,
+  ],
 })
 export class BookingModule {}
