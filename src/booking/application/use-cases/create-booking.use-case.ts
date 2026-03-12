@@ -3,17 +3,15 @@ import { SeatStatus } from '@@prisma';
 import { Injectable, Logger } from '@nestjs/common';
 import { isDefined } from 'class-validator';
 import { TypedCommandBus, TypedQueryBus } from 'src/common/cqrs';
-import { KafkaProducerService } from 'src/common/kafka';
 import { RedisService } from 'src/common/redis';
 import { BOOKING_ERRORS } from '../../booking.error';
-import { CreateBookingRequestBodyDto, CreateBookingResponseDataDto } from '../../presenter/http/dto/create-booking.dto';
+import { CreateBookingResponseDataDto } from '../../presenter/http/dto/create-booking.dto';
 import { CreateTicketCommand } from '../commands/create-ticket.command';
 import { GetSeatQuery } from '../queries/get-seat.query';
 
 const LOCK_TTL_SECONDS = 10;
 const SEAT_STOCK_KEY_PREFIX = 'ticketing:seat:';
 const LOCK_KEY_PREFIX = 'ticketing:lock:seat:';
-const TOPIC_BOOKING_CREATED = 'ticketing.booking.created';
 
 @Injectable()
 export class CreateBookingUseCase {
@@ -23,7 +21,6 @@ export class CreateBookingUseCase {
     private readonly commandBus: TypedCommandBus<CreateTicketCommand>,
     private readonly queryBus: TypedQueryBus<GetSeatQuery>,
     private readonly redisService: RedisService,
-    private readonly kafkaProducerService: KafkaProducerService,
   ) {}
 
   /**
@@ -50,9 +47,7 @@ export class CreateBookingUseCase {
 
       await this.decrementSeatStock(stockKey);
 
-      const ticket = await this.createTicket({ userId, seatId, stockKey });
-
-      await this.publishBookingCreated({ ticketId: ticket.id, userId, seatId, concertId: seat.concertId });
+      const ticket = await this.createTicket({ userId, seatId, concertId: seat.concertId, stockKey });
 
       this.logger.log(`Booking created: ticketId=${ticket.id}, userId=${userId}, seatId=${seatId}`);
 
@@ -127,33 +122,26 @@ export class CreateBookingUseCase {
   }
 
   /**
-   * DB 트랜잭션으로 티켓 생성 (실패 시 Redis 재고 보상)
+   * DB 트랜잭션으로 티켓 생성 및 Outbox 이벤트 기록 (실패 시 Redis 재고 보상)
    *
-   * @param {{ userId: number; seatId: number; stockKey: string }} props 생성 데이터
+   * @param {{ userId: number; seatId: number; concertId: number; stockKey: string }} props 생성 데이터
    * @returns {Promise<TicketData>} 생성된 티켓
    */
-  private async createTicket(props: { userId: number; seatId: number; stockKey: string }): Promise<TicketData> {
+  private async createTicket(props: {
+    userId: number;
+    seatId: number;
+    concertId: number;
+    stockKey: string;
+  }): Promise<TicketData> {
     try {
-      return await this.commandBus.execute(new CreateTicketCommand({ userId: props.userId, seatId: props.seatId }));
+      return await this.commandBus.execute(
+        new CreateTicketCommand({ userId: props.userId, seatId: props.seatId, concertId: props.concertId }),
+      );
     } catch (error) {
       await this.redisService.incrementStock(props.stockKey);
 
       throw error;
     }
-  }
-
-  /**
-   * Kafka에 예매 생성 이벤트 발행
-   *
-   * @param {{ ticketId: number; userId: number; seatId: number; concertId: number }} payload 이벤트 데이터
-   */
-  private async publishBookingCreated(payload: {
-    ticketId: number;
-    userId: number;
-    seatId: number;
-    concertId: number;
-  }): Promise<void> {
-    await this.kafkaProducerService.sendMessage(TOPIC_BOOKING_CREATED, payload, String(payload.seatId));
   }
 
   /**
@@ -170,7 +158,6 @@ export class CreateBookingUseCase {
 interface CreateBookingUseCaseProps {
   userId: number;
   seatId: number;
-  bodyDto: CreateBookingRequestBodyDto;
 }
 
 interface SeatData {

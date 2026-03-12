@@ -14,12 +14,12 @@ export class CancelTicketCommandHandler implements ICommandHandler<CancelTicketC
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * 티켓 취소 및 좌석 복구 (트랜잭션)
+   * 티켓 취소, 좌석 복구, Outbox 이벤트 기록 (원자적 트랜잭션)
    *
    * @param {CancelTicketCommand} command 취소 커맨드
    */
   async execute(command: CancelTicketCommand): Promise<void> {
-    const { ticketId, seatId } = command.props;
+    const { ticketId, seatId, userId, concertId } = command.props;
 
     await this.prisma.$transaction(async (tx) => {
       await tx.ticket.update({
@@ -31,6 +31,14 @@ export class CancelTicketCommandHandler implements ICommandHandler<CancelTicketC
         where: { id: seatId },
         data: { status: SeatStatus.AVAILABLE },
       });
+
+      await tx.outboxEvent.create({
+        data: {
+          aggregateId: String(ticketId),
+          eventType: 'ticketing.booking.cancelled',
+          payload: { ticketId, userId, seatId, concertId },
+        },
+      });
     });
   }
 }
@@ -38,4 +46,6 @@ export class CancelTicketCommandHandler implements ICommandHandler<CancelTicketC
 interface CancelTicketCommandProps {
   ticketId: number;
   seatId: number;
+  userId: number;
+  concertId: number;
 }

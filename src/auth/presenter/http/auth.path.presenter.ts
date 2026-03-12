@@ -5,5 +5,6 @@ export const AuthRouter = {
     Register: 'register',
     Login: 'login',
     Logout: 'logout',
+    Refresh: 'refresh',
   },
 } as const;

@@ -3,14 +3,12 @@ import { TicketStatus } from '@@prisma';
 import { Injectable, Logger } from '@nestjs/common';
 import { isDefined } from 'class-validator';
 import { TypedCommandBus } from 'src/common/cqrs';
-import { KafkaProducerService } from 'src/common/kafka';
 import { PrismaService } from 'src/common/prisma';
 import { RedisService } from 'src/common/redis';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CancelTicketCommand } from '../commands/cancel-ticket.command';
 
 const SEAT_STOCK_KEY_PREFIX = 'ticketing:seat:';
-const TOPIC_BOOKING_CANCELLED = 'ticketing.booking.cancelled';
 
 @Injectable()
 export class CancelBookingUseCase {
@@ -20,7 +18,6 @@ export class CancelBookingUseCase {
     private readonly commandBus: TypedCommandBus<CancelTicketCommand>,
     private readonly prisma: PrismaService,
     private readonly redisService: RedisService,
-    private readonly kafkaProducerService: KafkaProducerService,
   ) {}
 
   /**
@@ -36,11 +33,9 @@ export class CancelBookingUseCase {
 
     this.validateCancellable(ticket);
 
-    await this.cancelTicket({ ticketId, seatId: ticket.seatId });
+    await this.cancelTicket({ ticketId, seatId: ticket.seatId, userId, concertId: ticket.seat.concertId });
 
     await this.restoreSeatStock(ticket.seatId);
-
-    await this.publishBookingCancelled({ ticketId, userId, seatId: ticket.seatId, concertId: ticket.seat.concertId });
 
     this.logger.log(`Booking cancelled: ticketId=${ticketId}, userId=${userId}`);
   }
@@ -80,11 +75,16 @@ export class CancelBookingUseCase {
   }
 
   /**
-   * DB 트랜잭션으로 티켓 취소 및 좌석 복구
+   * DB 트랜잭션으로 티켓 취소, 좌석 복구, Outbox 이벤트 기록
    *
-   * @param {{ ticketId: number; seatId: number }} params 취소 데이터
+   * @param {{ ticketId: number; seatId: number; userId: number; concertId: number }} params 취소 데이터
    */
-  private async cancelTicket(params: { ticketId: number; seatId: number }): Promise<void> {
+  private async cancelTicket(params: {
+    ticketId: number;
+    seatId: number;
+    userId: number;
+    concertId: number;
+  }): Promise<void> {
     await this.commandBus.execute(new CancelTicketCommand(params));
   }
 
@@ -97,20 +97,6 @@ export class CancelBookingUseCase {
     const stockKey = `${SEAT_STOCK_KEY_PREFIX}${seatId}:stock`;
 
     await this.redisService.incrementStock(stockKey);
-  }
-
-  /**
-   * Kafka에 예매 취소 이벤트 발행
-   *
-   * @param {{ ticketId: number; userId: number; seatId: number; concertId: number }} payload 이벤트 데이터
-   */
-  private async publishBookingCancelled(payload: {
-    ticketId: number;
-    userId: number;
-    seatId: number;
-    concertId: number;
-  }): Promise<void> {
-    await this.kafkaProducerService.sendMessage(TOPIC_BOOKING_CANCELLED, payload, String(payload.seatId));
   }
 }
 

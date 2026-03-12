@@ -1,22 +1,18 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: @nestjs/jwt v11 expiresIn 타입 이슈 */
-
 import { AppException } from '@@exceptions';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import bcrypt from 'bcryptjs';
 import { isDefined } from 'class-validator';
 import { TypedQueryBus } from 'src/common/cqrs';
 import { AUTH_ERRORS } from '../../auth.error';
 import { LoginRequestBodyDto, LoginResponseDataDto } from '../../presenter/http/dto/login.dto';
 import { GetUserByEmailQuery } from '../queries/get-user-by-email.query';
+import { RefreshTokenUseCase } from './refresh-token.use-case';
 
 @Injectable()
 export class LoginUseCase {
   constructor(
     private readonly queryBus: TypedQueryBus<GetUserByEmailQuery>,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly refreshTokenUseCase: RefreshTokenUseCase,
   ) {}
 
   /**
@@ -33,9 +29,9 @@ export class LoginUseCase {
 
     await this.verifyPassword(password, user.password);
 
-    const tokenData = this.issueToken(user);
+    const tokens = await this.refreshTokenUseCase.issueTokenPair(user.id);
 
-    return this.buildResponseDto(tokenData);
+    return LoginResponseDataDto.from(tokens);
   }
 
   /**
@@ -68,30 +64,6 @@ export class LoginUseCase {
     if (!isMatch) {
       throw new AppException(AUTH_ERRORS.INVALID_CREDENTIALS);
     }
-  }
-
-  /**
-   * JWT 토큰 발급
-   *
-   * @param {{ id: number; email: string }} user 사용자 정보
-   * @returns {{ accessToken: string; expiresIn: string }} 발급된 토큰 및 만료 정보
-   */
-  private issueToken(user: { id: number; email: string }): { accessToken: string; expiresIn: string } {
-    const expiresIn = this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN');
-
-    const accessToken = this.jwtService.sign({ sub: user.id, email: user.email }, { expiresIn: expiresIn as any });
-
-    return { accessToken, expiresIn };
-  }
-
-  /**
-   * 응답 DTO 생성
-   *
-   * @param {{ accessToken: string; expiresIn: string }} tokenData 토큰 데이터
-   * @returns {LoginResponseDataDto} 응답 DTO
-   */
-  private buildResponseDto(tokenData: { accessToken: string; expiresIn: string }): LoginResponseDataDto {
-    return LoginResponseDataDto.from(tokenData);
   }
 }
 

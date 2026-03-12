@@ -45,7 +45,7 @@ export class BookingHttpController {
     @User('id') userId: number,
     @Body() bodyDto: CreateBookingRequestBodyDto,
   ): Promise<CreateBookingResponseDataDto> {
-    return await this.createBookingUseCase.execute({ userId, seatId: bodyDto.seatId, bodyDto });
+    return await this.createBookingUseCase.execute({ userId, seatId: bodyDto.seatId });
   }
 
   /**

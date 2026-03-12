@@ -2,8 +2,10 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import Joi from 'joi';
+import type ms from 'ms';
 
 import { AuthModule } from './auth/auth.module';
 import { BookingModule } from './booking/booking.module';
@@ -17,6 +19,7 @@ import { ConcertModule } from './concert/concert.module';
 @Module({
   imports: [
     RedisModule,
+    ScheduleModule.forRoot(),
     ThrottlerModule.forRootAsync({
       inject: [RedisThrottlerStorage],
       useFactory: (redisThrottlerStorage: RedisThrottlerStorage) => ({
@@ -36,7 +39,9 @@ import { ConcertModule } from './concert/concert.module';
         KAFKA_CLIENT_ID: Joi.string().required(),
         KAFKA_GROUP_ID: Joi.string().required(),
         JWT_ACCESS_SECRET: Joi.string().required(),
-        JWT_ACCESS_EXPIRES_IN: Joi.string().default('7d'),
+        JWT_ACCESS_EXPIRES_IN: Joi.string().default('15m'),
+        JWT_REFRESH_SECRET: Joi.string().required(),
+        JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
       }),
       isGlobal: true,
       envFilePath: '.env',
@@ -47,7 +52,7 @@ import { ConcertModule } from './concert/concert.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-        signOptions: { expiresIn: configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN') },
+        signOptions: { expiresIn: configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN') as ms.StringValue },
       }),
     }),
     GlobalCqrsModule,
