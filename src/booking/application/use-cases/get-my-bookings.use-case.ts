@@ -1,6 +1,5 @@
+import { TypedQueryBus } from '@@cqrs';
 import { Injectable } from '@nestjs/common';
-
-import { TypedQueryBus } from 'src/common/cqrs';
 import { GetMyBookingsResponseDataDto } from '../../presenter/http/dto/get-my-bookings.dto';
 import { GetMyBookingsQuery } from '../queries/get-my-bookings.query';
 

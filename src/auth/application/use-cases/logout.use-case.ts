@@ -1,9 +1,8 @@
+import { TypedCommandBus } from '@@cqrs';
+import { RedisService } from '@@redis';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { isDefined } from 'class-validator';
-
-import { TypedCommandBus } from 'src/common/cqrs';
-import { RedisService } from 'src/common/redis';
 import { DeleteRefreshTokenCommand } from '../commands/delete-refresh-token.command';
 import { RefreshTokenUseCase } from './refresh-token.use-case';
 
@@ -53,7 +52,7 @@ export class LogoutUseCase {
    * @param {string | undefined} refreshToken 삭제할 Refresh token
    */
   private async revokeRefreshToken(refreshToken: string | undefined): Promise<void> {
-    if (!(isDefined(refreshToken) && refreshToken)) {
+    if (!isDefined(refreshToken)) {
       return;
     }
 

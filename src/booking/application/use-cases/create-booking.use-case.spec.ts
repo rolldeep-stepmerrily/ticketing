@@ -1,8 +1,8 @@
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { AppException } from '@@exceptions';
 import { SeatStatus } from '@@prisma';
+import { RedisService } from '@@redis';
 import { Test, TestingModule } from '@nestjs/testing';
-import { TypedCommandBus, TypedQueryBus } from 'src/common/cqrs';
-import { RedisService } from 'src/common/redis';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CreateTicketCommand } from '../commands/create-ticket.command';
 import { GetSeatQuery } from '../queries/get-seat.query';

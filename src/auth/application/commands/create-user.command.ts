@@ -1,6 +1,5 @@
+import { PrismaService } from '@@db';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { PrismaService } from 'src/common/prisma';
 
 export class CreateUserCommand extends Command<CreateUserResult> {
   constructor(public readonly props: CreateUserCommandProps) {

@@ -1,7 +1,7 @@
+import { TypedQueryBus } from '@@cqrs';
 import { AppException } from '@@exceptions';
 import { Injectable } from '@nestjs/common';
 import { isDefined } from 'class-validator';
-import { TypedQueryBus } from 'src/common/cqrs';
 import { CONCERT_ERRORS } from '../../concert.error';
 import { GetConcertSeatsResponseDataDto } from '../../presenter/http/dto/get-concert-seats.dto';
 import { GetConcertQuery } from '../queries/get-concert.query';
