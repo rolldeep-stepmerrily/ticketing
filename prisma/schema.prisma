@@ -1,0 +1,90 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../src/generated/prisma/client"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  name      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime? @updatedAt
+  deletedAt DateTime?
+
+  tickets Ticket[]
+
+  @@map("users")
+}
+
+model Concert {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String?
+  venue       String
+  startsAt    DateTime
+  endsAt      DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  deletedAt   DateTime?
+
+  seats Seat[]
+
+  @@map("concerts")
+}
+
+model Seat {
+  id        Int        @id @default(autoincrement())
+  concertId Int
+  row       String
+  number    Int
+  grade     SeatGrade
+  price     Int
+  status    SeatStatus @default(AVAILABLE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime?  @updatedAt
+
+  concert Concert @relation(fields: [concertId], references: [id])
+  ticket  Ticket?
+
+  @@unique([concertId, row, number])
+  @@map("seats")
+}
+
+model Ticket {
+  id        Int          @id @default(autoincrement())
+  userId    Int
+  seatId    Int          @unique
+  status    TicketStatus @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime?    @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+  seat Seat @relation(fields: [seatId], references: [id])
+
+  @@map("tickets")
+}
+
+enum SeatGrade {
+  VIP
+  R
+  S
+  A
+}
+
+enum SeatStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+enum TicketStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+}

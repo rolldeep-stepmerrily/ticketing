@@ -1,0 +1,35 @@
+# compiled output
+dist/
+node_modules/
+
+# env
+.env
+.env.*
+!.env.example
+
+# prisma generated
+src/generated/
+
+# logs
+logs/
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# test coverage
+coverage/
+
+# incremental compilation
+*.tsbuildinfo
