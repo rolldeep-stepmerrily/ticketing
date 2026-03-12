@@ -1,35 +1,72 @@
 # compiled output
-dist/
-node_modules/
+dist
+build 
 
-# env
+# Dependencies
+node_modules
+**/node_modules
+
+# pnpm
+pnpm-debug.log*
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# OS
+.DS_Store
+
+# Tests
+coverage
+.nyc_output
+
+# IDEs and editors
+.idea
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dotenv
 .env
 .env.*
 !.env.example
 
-# prisma generated
+# Temp
+.temp
+.tmp
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Diagnostic reports
+report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Next.js
+.next/
+out/
+
+# NestJS
+*.tsbuildinfo
+
+# Prisma generated client
 src/generated/
 
-# logs
-logs/
-*.log
-npm-debug.log*
-pnpm-debug.log*
+.claude/settings.local.json
 
-# OS
-.DS_Store
-Thumbs.db
-
-# IDE
-.idea/
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# test coverage
-coverage/
-
-# incremental compilation
-*.tsbuildinfo
