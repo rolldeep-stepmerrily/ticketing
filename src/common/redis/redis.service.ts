@@ -126,4 +126,13 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   async incrementStock(key: string): Promise<number> {
     return await this.client.incr(key);
   }
+
+  /**
+   * 좌석 재고 초기화 (공연 등록 시 사전 세팅)
+   * @param key 재고 키
+   * @param stock 초기 재고 값
+   */
+  async setStock(key: string, stock: number): Promise<void> {
+    await this.client.set(key, String(stock));
+  }
 }

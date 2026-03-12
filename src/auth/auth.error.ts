@@ -11,4 +11,9 @@ export const AUTH_ERRORS = {
     errorCode: 'AUTH_INVALID_CREDENTIALS',
     message: 'Invalid email or password',
   },
+  REFRESH_TOKEN_INVALID: {
+    statusCode: HttpStatus.UNAUTHORIZED,
+    errorCode: 'AUTH_REFRESH_TOKEN_INVALID',
+    message: 'Invalid or expired refresh token',
+  },
 } as const;

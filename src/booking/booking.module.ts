@@ -9,6 +9,7 @@ import { CancelBookingUseCase } from './application/use-cases/cancel-booking.use
 import { CreateBookingUseCase } from './application/use-cases/create-booking.use-case';
 import { GetMyBookingsUseCase } from './application/use-cases/get-my-bookings.use-case';
 import { BookingConfirmConsumer } from './booking-confirm.consumer';
+import { OutboxPublisherService } from './outbox/outbox-publisher.service';
 import { BookingHttpController } from './presenter/http/booking.http.controller';
 
 @Module({
@@ -28,6 +29,7 @@ import { BookingHttpController } from './presenter/http/booking.http.controller'
     GetMyBookingsUseCase,
 
     BookingConfirmConsumer,
+    OutboxPublisherService,
     JwtGuard,
   ],
 })
