@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import Joi from 'joi';
+import type ms from 'ms';
 
 import { AuthModule } from './auth/auth.module';
 import { BookingModule } from './booking/booking.module';
@@ -47,7 +48,7 @@ import { ConcertModule } from './concert/concert.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         secret: configService.getOrThrow<string>('JWT_ACCESS_SECRET'),
-        signOptions: { expiresIn: configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN') },
+        signOptions: { expiresIn: configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN') as ms.StringValue },
       }),
     }),
     GlobalCqrsModule,

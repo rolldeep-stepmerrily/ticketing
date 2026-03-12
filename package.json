@@ -49,6 +49,7 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/express": "^5.0.0",
     "@types/jest": "^29.5.2",
+    "@types/ms": "^2.1.0",
     "@types/node": "^22.0.0",
     "@types/pg": "^8.11.0",
     "@types/supertest": "^6.0.0",
