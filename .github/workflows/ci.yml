@@ -32,5 +32,8 @@ jobs:
       - name: Lint
         run: pnpm lint
 
+      - name: Generate Prisma Client
+        run: pnpm db:generate
+
       - name: Test
         run: pnpm exec jest --passWithNoTests
