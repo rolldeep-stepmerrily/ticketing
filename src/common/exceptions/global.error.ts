@@ -21,4 +21,14 @@ export const GLOBAL_ERRORS = {
     errorCode: 'DATABASE_ERROR',
     message: 'Database error',
   },
-};
+  UNAUTHORIZED: {
+    statusCode: HttpStatus.UNAUTHORIZED,
+    errorCode: 'UNAUTHORIZED',
+    message: 'Unauthorized',
+  },
+  TOKEN_BLACKLISTED: {
+    statusCode: HttpStatus.UNAUTHORIZED,
+    errorCode: 'TOKEN_BLACKLISTED',
+    message: 'Token has been revoked',
+  },
+} as const;
