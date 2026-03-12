@@ -1,7 +1,6 @@
+import { PrismaService } from '@@db';
 import { SeatGrade } from '@@prisma';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
-import { PrismaService } from '@@db';
 
 interface ConcertSeatInput {
   row: string;

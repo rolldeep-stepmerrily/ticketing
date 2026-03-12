@@ -1,3 +1,4 @@
+import { SeatGrade } from '@@prisma';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -11,8 +12,6 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-
-import { SeatGrade } from '@@prisma';
 
 export class CreateConcertSeatDto {
   @ApiProperty({ example: 'A', description: '좌석 행' })

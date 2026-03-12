@@ -1,7 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-
 import { TypedCommandBus } from '@@cqrs';
 import { RedisService } from '@@redis';
+import { Injectable, Logger } from '@nestjs/common';
 import { CreateConcertRequestBodyDto, CreateConcertResponseDataDto } from '../../presenter/http/dto/create-concert.dto';
 import { CreateConcertCommand } from '../commands/create-concert.command';
 
@@ -56,7 +55,9 @@ export class CreateConcertUseCase {
    * @param {number[]} seatIds 초기화할 좌석 ID 목록
    */
   private async initializeSeatStock(seatIds: number[]): Promise<void> {
-    await Promise.all(seatIds.map((seatId) => this.redisService.setStock(`${SEAT_STOCK_KEY_PREFIX}${seatId}:stock`, 1)));
+    await Promise.all(
+      seatIds.map((seatId) => this.redisService.setStock(`${SEAT_STOCK_KEY_PREFIX}${seatId}:stock`, 1)),
+    );
   }
 }
 

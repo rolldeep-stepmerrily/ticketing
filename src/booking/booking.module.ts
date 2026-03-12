@@ -1,6 +1,5 @@
-import { Module } from '@nestjs/common';
-
 import { JwtGuard } from '@@guards';
+import { Module } from '@nestjs/common';
 import { CancelTicketCommandHandler } from './application/commands/cancel-ticket.command';
 import { CreateTicketCommandHandler } from './application/commands/create-ticket.command';
 import { GetMyBookingsQueryHandler } from './application/queries/get-my-bookings.query';

@@ -1,9 +1,8 @@
-import { Module } from '@nestjs/common';
-
 import { JwtGuard } from '@@guards';
+import { Module } from '@nestjs/common';
 import { CreateRefreshTokenCommandHandler } from './application/commands/create-refresh-token.command';
-import { DeleteRefreshTokenCommandHandler } from './application/commands/delete-refresh-token.command';
 import { CreateUserCommandHandler } from './application/commands/create-user.command';
+import { DeleteRefreshTokenCommandHandler } from './application/commands/delete-refresh-token.command';
 import { GetRefreshTokenByHashQueryHandler } from './application/queries/get-refresh-token-by-hash.query';
 import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.query';
 import { LoginUseCase } from './application/use-cases/login.use-case';

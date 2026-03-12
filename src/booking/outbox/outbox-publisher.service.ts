@@ -1,10 +1,9 @@
+import { PrismaService } from '@@db';
+import { KafkaProducerService } from '@@kafka';
+import { RedisService } from '@@redis';
+import { randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { randomUUID } from 'node:crypto';
-
-import { KafkaProducerService } from '@@kafka';
-import { PrismaService } from '@@db';
-import { RedisService } from '@@redis';
 
 const OUTBOX_BATCH_SIZE = 100;
 const OUTBOX_LOCK_KEY = 'ticketing:outbox:publisher:lock';

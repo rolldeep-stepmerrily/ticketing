@@ -1,7 +1,7 @@
-import { TicketStatus } from '@@prisma';
-import { Test, TestingModule } from '@nestjs/testing';
 import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
+import { TicketStatus } from '@@prisma';
 import { RedisService } from '@@redis';
+import { Test, TestingModule } from '@nestjs/testing';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CancelTicketCommand } from '../commands/cancel-ticket.command';
 import { CancelBookingUseCase } from './cancel-booking.use-case';
@@ -105,7 +105,12 @@ describe('CancelBookingUseCase', () => {
 
       const [calledCommand] = commandBus.execute.mock.calls[0] as [CancelTicketCommand];
       expect(calledCommand).toBeInstanceOf(CancelTicketCommand);
-      expect(calledCommand.props).toEqual({ ticketId: TICKET_ID, seatId: SEAT_ID, userId: USER_ID, concertId: CONCERT_ID });
+      expect(calledCommand.props).toEqual({
+        ticketId: TICKET_ID,
+        seatId: SEAT_ID,
+        userId: USER_ID,
+        concertId: CONCERT_ID,
+      });
     });
   });
 });

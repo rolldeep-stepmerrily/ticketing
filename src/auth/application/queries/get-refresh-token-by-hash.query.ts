@@ -1,6 +1,5 @@
-import { IQueryHandler, Query, QueryHandler } from '@nestjs/cqrs';
-
 import { PrismaService } from '@@db';
+import { IQueryHandler, Query, QueryHandler } from '@nestjs/cqrs';
 
 interface RefreshTokenRecord {
   id: number;

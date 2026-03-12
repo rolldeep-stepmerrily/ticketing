@@ -1,8 +1,8 @@
+import { TypedQueryBus } from '@@cqrs';
 import { AppException } from '@@exceptions';
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { isDefined } from 'class-validator';
-import { TypedQueryBus } from '@@cqrs';
 import { AUTH_ERRORS } from '../../auth.error';
 import { LoginRequestBodyDto, LoginResponseDataDto } from '../../presenter/http/dto/login.dto';
 import { GetUserByEmailQuery } from '../queries/get-user-by-email.query';

@@ -1,6 +1,5 @@
-import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-
 import { PrismaService } from '@@db';
+import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
 export class DeleteRefreshTokenCommand extends Command<void> {
   constructor(public readonly props: DeleteRefreshTokenCommandProps) {

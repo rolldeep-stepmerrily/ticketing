@@ -1,9 +1,9 @@
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { AppException } from '@@exceptions';
 import { SeatStatus } from '@@prisma';
+import { RedisService } from '@@redis';
 import { Injectable, Logger } from '@nestjs/common';
 import { isDefined } from 'class-validator';
-import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
-import { RedisService } from '@@redis';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CreateBookingResponseDataDto } from '../../presenter/http/dto/create-booking.dto';
 import { CreateTicketCommand } from '../commands/create-ticket.command';
