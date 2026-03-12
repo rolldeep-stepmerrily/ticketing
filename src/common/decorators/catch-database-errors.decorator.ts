@@ -6,11 +6,11 @@ export const CatchDatabaseErrors = () => {
     const prototype = target.prototype;
     const propertyNames = Object.getOwnPropertyNames(prototype);
 
-    propertyNames.forEach((propertyName) => {
+    for (const propertyName of propertyNames) {
       const descriptor = Object.getOwnPropertyDescriptor(prototype, propertyName);
 
       if (!descriptor || typeof descriptor.value !== 'function') {
-        throw new AppException(GLOBAL_ERRORS.UNKNOWN_ERROR);
+        continue;
       }
 
       const originalMethod = descriptor.value;
@@ -27,6 +27,6 @@ export const CatchDatabaseErrors = () => {
       };
 
       Object.defineProperty(prototype, propertyName, descriptor);
-    });
+    }
   };
 };

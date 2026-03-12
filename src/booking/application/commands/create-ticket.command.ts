@@ -1,7 +1,7 @@
 import { SeatStatus, TicketStatus } from '@@prisma';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { PrismaService } from 'src/common/prisma';
+import { PrismaService } from '@@db';
 
 export class CreateTicketCommand extends Command<CreateTicketResult> {
   constructor(public readonly props: CreateTicketCommandProps) {

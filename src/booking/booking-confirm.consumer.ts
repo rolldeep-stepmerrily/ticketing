@@ -2,8 +2,8 @@ import { TicketStatus } from '@@prisma';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { isDefined } from 'class-validator';
 
-import { KafkaConsumerService } from 'src/common/kafka';
-import { PrismaService } from 'src/common/prisma';
+import { KafkaConsumerService } from '@@kafka';
+import { PrismaService } from '@@db';
 
 const TOPIC_BOOKING_CREATED = 'ticketing.booking.created';
 

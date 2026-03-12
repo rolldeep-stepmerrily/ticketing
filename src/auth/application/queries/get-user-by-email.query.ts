@@ -1,6 +1,6 @@
 import { IQueryHandler, Query, QueryHandler } from '@nestjs/cqrs';
 
-import { PrismaService } from 'src/common/prisma';
+import { PrismaService } from '@@db';
 
 export class GetUserByEmailQuery extends Query<GetUserByEmailResult | null> {
   constructor(public readonly props: GetUserByEmailQueryProps) {

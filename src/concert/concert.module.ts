@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { JwtGuard } from 'src/common/guards';
+import { JwtGuard } from '@@guards';
 import { CreateConcertCommandHandler } from './application/commands/create-concert.command';
 import { GetConcertQueryHandler } from './application/queries/get-concert.query';
 import { GetConcertSeatsQueryHandler } from './application/queries/get-concert-seats.query';

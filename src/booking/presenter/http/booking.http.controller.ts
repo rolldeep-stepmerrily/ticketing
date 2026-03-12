@@ -12,7 +12,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtGuard } from 'src/common/guards';
+import { JwtGuard } from '@@guards';
 import { CancelBookingUseCase } from '../../application/use-cases/cancel-booking.use-case';
 import { CreateBookingUseCase } from '../../application/use-cases/create-booking.use-case';
 import { GetMyBookingsUseCase } from '../../application/use-cases/get-my-bookings.use-case';

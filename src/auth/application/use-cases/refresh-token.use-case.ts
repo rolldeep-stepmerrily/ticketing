@@ -1,11 +1,11 @@
-import { AppException } from '@@exceptions';
+import { AppException, GLOBAL_ERRORS } from '@@exceptions';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes } from 'node:crypto';
 import { isDefined } from 'class-validator';
 import type ms from 'ms';
-import { TypedCommandBus, TypedQueryBus } from 'src/common/cqrs';
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { AUTH_ERRORS } from '../../auth.error';
 import { RefreshTokenResponseDataDto } from '../../presenter/http/dto/refresh-token.dto';
 import { CreateRefreshTokenCommand } from '../commands/create-refresh-token.command';
@@ -115,7 +115,7 @@ export class RefreshTokenUseCase {
     const match = expiresIn.match(/^(\d+)([smhd])$/);
 
     if (!match) {
-      return new Date(Date.now() + 7 * 86_400_000);
+      throw new AppException(GLOBAL_ERRORS.UNKNOWN_ERROR);
     }
 
     const value = Number(match[1]);

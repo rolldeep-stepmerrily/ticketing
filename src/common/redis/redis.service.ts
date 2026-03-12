@@ -86,10 +86,11 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * 분산 락 획득 (SET NX EX)
-   * @param key 락 키
-   * @param value 락 값 (소유자 식별용)
-   * @param ttlSeconds 만료 시간 (초)
-   * @returns 락 획득 성공 여부
+   *
+   * @param {string} key 락 키
+   * @param {string} value 락 값 (소유자 식별용)
+   * @param {number} ttlSeconds 만료 시간 (초)
+   * @returns {Promise<boolean>} 락 획득 성공 여부
    */
   async acquireLock(key: string, value: string, ttlSeconds: number): Promise<boolean> {
     const result = await this.client.set(key, value, 'EX', ttlSeconds, 'NX');
@@ -98,9 +99,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * 분산 락 해제 (Lua script - 소유자 검증 후 삭제)
-   * @param key 락 키
-   * @param value 락 획득 시 사용한 값
-   * @returns 락 해제 성공 여부
+   *
+   * @param {string} key 락 키
+   * @param {string} value 락 획득 시 사용한 값
+   * @returns {Promise<boolean>} 락 해제 성공 여부
    */
   async releaseLock(key: string, value: string): Promise<boolean> {
     const result = (await this.client.eval(this.releaseLockScript, 1, key, value)) as number;
@@ -110,9 +112,10 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   /**
    * 좌석 재고 원자적 감소 (Lua script)
    * 키가 없으면 initialStock으로 초기화 후 감소
-   * @param key 재고 키
-   * @param initialStock 키 미존재 시 초기 재고값
-   * @returns 감소 후 값 (0이면 재고 없음)
+   *
+   * @param {string} key 재고 키
+   * @param {number} initialStock 키 미존재 시 초기 재고값
+   * @returns {Promise<number>} 감소 후 값 (0이면 재고 없음)
    */
   async decrementStock(key: string, initialStock: number): Promise<number> {
     return (await this.client.eval(this.decrementStockScript, 1, key, String(initialStock))) as number;
@@ -120,8 +123,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * 좌석 재고 증가 (예매 취소 시 보상)
-   * @param key 재고 키
-   * @returns 증가 후 값
+   *
+   * @param {string} key 재고 키
+   * @returns {Promise<number>} 증가 후 값
    */
   async incrementStock(key: string): Promise<number> {
     return await this.client.incr(key);
@@ -129,8 +133,9 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * 좌석 재고 초기화 (공연 등록 시 사전 세팅)
-   * @param key 재고 키
-   * @param stock 초기 재고 값
+   *
+   * @param {string} key 재고 키
+   * @param {number} stock 초기 재고 값
    */
   async setStock(key: string, stock: number): Promise<void> {
     await this.client.set(key, String(stock));

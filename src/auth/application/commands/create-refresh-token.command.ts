@@ -1,6 +1,6 @@
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 
-import { PrismaService } from 'src/common/prisma';
+import { PrismaService } from '@@db';
 
 export class CreateRefreshTokenCommand extends Command<void> {
   constructor(public readonly props: CreateRefreshTokenCommandProps) {

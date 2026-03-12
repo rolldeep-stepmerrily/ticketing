@@ -1,10 +1,11 @@
 import { Module } from '@nestjs/common';
 
-import { JwtGuard } from 'src/common/guards';
+import { JwtGuard } from '@@guards';
 import { CancelTicketCommandHandler } from './application/commands/cancel-ticket.command';
 import { CreateTicketCommandHandler } from './application/commands/create-ticket.command';
 import { GetMyBookingsQueryHandler } from './application/queries/get-my-bookings.query';
 import { GetSeatQueryHandler } from './application/queries/get-seat.query';
+import { GetTicketQueryHandler } from './application/queries/get-ticket.query';
 import { CancelBookingUseCase } from './application/use-cases/cancel-booking.use-case';
 import { CreateBookingUseCase } from './application/use-cases/create-booking.use-case';
 import { GetMyBookingsUseCase } from './application/use-cases/get-my-bookings.use-case';
@@ -18,6 +19,7 @@ import { BookingHttpController } from './presenter/http/booking.http.controller'
     /** query-handlers */
     GetSeatQueryHandler,
     GetMyBookingsQueryHandler,
+    GetTicketQueryHandler,
 
     /** command-handlers */
     CreateTicketCommandHandler,

@@ -2,7 +2,7 @@ import { AppException } from '@@exceptions';
 import { Injectable } from '@nestjs/common';
 import bcrypt from 'bcryptjs';
 import { isDefined } from 'class-validator';
-import { TypedCommandBus, TypedQueryBus } from 'src/common/cqrs';
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { AUTH_ERRORS } from '../../auth.error';
 import { RegisterRequestBodyDto, RegisterResponseDataDto } from '../../presenter/http/dto/register.dto';
 import { CreateUserCommand } from '../commands/create-user.command';

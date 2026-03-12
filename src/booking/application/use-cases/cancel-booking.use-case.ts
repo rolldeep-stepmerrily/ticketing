@@ -2,11 +2,11 @@ import { AppException } from '@@exceptions';
 import { TicketStatus } from '@@prisma';
 import { Injectable, Logger } from '@nestjs/common';
 import { isDefined } from 'class-validator';
-import { TypedCommandBus } from 'src/common/cqrs';
-import { PrismaService } from 'src/common/prisma';
-import { RedisService } from 'src/common/redis';
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
+import { RedisService } from '@@redis';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CancelTicketCommand } from '../commands/cancel-ticket.command';
+import { GetTicketQuery } from '../queries/get-ticket.query';
 
 const SEAT_STOCK_KEY_PREFIX = 'ticketing:seat:';
 
@@ -16,7 +16,7 @@ export class CancelBookingUseCase {
 
   constructor(
     private readonly commandBus: TypedCommandBus<CancelTicketCommand>,
-    private readonly prisma: PrismaService,
+    private readonly queryBus: TypedQueryBus<GetTicketQuery>,
     private readonly redisService: RedisService,
   ) {}
 
@@ -48,10 +48,7 @@ export class CancelBookingUseCase {
    * @throws {AppException} 티켓이 없거나 소유자가 다른 경우
    */
   private async findTicket(params: { userId: number; ticketId: number }): Promise<TicketWithSeat> {
-    const ticket = await this.prisma.ticket.findFirst({
-      where: { id: params.ticketId, userId: params.userId },
-      include: { seat: true },
-    });
+    const ticket = await this.queryBus.execute(new GetTicketQuery({ ticketId: params.ticketId, userId: params.userId }));
 
     if (!isDefined(ticket)) {
       throw new AppException(BOOKING_ERRORS.TICKET_NOT_FOUND);

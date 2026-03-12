@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { JwtGuard } from 'src/common/guards';
+import { JwtGuard } from '@@guards';
 import { CreateRefreshTokenCommandHandler } from './application/commands/create-refresh-token.command';
 import { DeleteRefreshTokenCommandHandler } from './application/commands/delete-refresh-token.command';
 import { CreateUserCommandHandler } from './application/commands/create-user.command';

@@ -1,6 +1,6 @@
 import { IQueryHandler, Query, QueryHandler } from '@nestjs/cqrs';
 
-import { PrismaService } from 'src/common/prisma';
+import { PrismaService } from '@@db';
 
 export class GetConcertSeatsQuery extends Query<GetConcertSeatsResult> {
   constructor(public readonly props: GetConcertSeatsQueryProps) {

@@ -1,6 +1,6 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseIntPipe, Post, Query, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { JwtGuard } from 'src/common/guards';
+import { JwtGuard } from '@@guards';
 import { CreateConcertUseCase } from '../../application/use-cases/create-concert.use-case';
 import { GetConcertUseCase } from '../../application/use-cases/get-concert.use-case';
 import { GetConcertSeatsUseCase } from '../../application/use-cases/get-concert-seats.use-case';

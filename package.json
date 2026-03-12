@@ -93,6 +93,11 @@
       "^@@entities$": "<rootDir>/common/entities/index",
       "^@@exceptions$": "<rootDir>/common/exceptions/index",
       "^@@prisma$": "<rootDir>/generated/prisma/client",
+      "^@@cqrs$": "<rootDir>/common/cqrs/index",
+      "^@@redis$": "<rootDir>/common/redis/index",
+      "^@@kafka$": "<rootDir>/common/kafka/index",
+      "^@@guards$": "<rootDir>/common/guards/index",
+      "^@@db$": "<rootDir>/common/prisma/index",
       "^src/(.*)$": "<rootDir>/$1"
     }
   }

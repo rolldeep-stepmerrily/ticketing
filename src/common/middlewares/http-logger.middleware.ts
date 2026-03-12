@@ -13,7 +13,7 @@ export class HttpLoggerMiddleware implements NestMiddleware {
 
   private readonly logger = new Logger('HTTP');
 
-  use(req: IRequest, res: Response, next: NextFunction) {
+  use(req: IRequest, res: Response, next: NextFunction): void {
     const startTime = Date.now();
 
     if (this.configService.getOrThrow('NODE_ENV') === 'development') {

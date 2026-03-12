@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
-import { TypedCommandBus } from 'src/common/cqrs';
-import { RedisService } from 'src/common/redis';
+import { TypedCommandBus } from '@@cqrs';
+import { RedisService } from '@@redis';
 import { CreateConcertRequestBodyDto, CreateConcertResponseDataDto } from '../../presenter/http/dto/create-concert.dto';
 import { CreateConcertCommand } from '../commands/create-concert.command';
 
