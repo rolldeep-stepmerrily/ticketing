@@ -8,6 +8,7 @@
     "start": "node dist/main",
     "lint": "biome lint src/",
     "check": "biome check --write src/",
+    "pretest": "prisma generate",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
