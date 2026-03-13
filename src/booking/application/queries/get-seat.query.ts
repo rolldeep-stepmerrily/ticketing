@@ -20,7 +20,17 @@ export class GetSeatQueryHandler implements IQueryHandler<GetSeatQuery, GetSeatR
   async execute(query: GetSeatQuery): Promise<GetSeatResult | null> {
     return await this.prisma.seat.findUnique({
       where: { id: query.props.seatId },
-      select: { id: true, concertId: true, row: true, number: true, grade: true, price: true, status: true, createdAt: true, updatedAt: true },
+      select: {
+        id: true,
+        concertId: true,
+        row: true,
+        number: true,
+        grade: true,
+        price: true,
+        status: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 }
