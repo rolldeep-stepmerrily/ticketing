@@ -181,8 +181,9 @@ interface CreateToolUseCaseProps {
 
 ### UseCase 작성 규칙
 
-- `execute` 메서드가 유일한 public 진입점
-- 각 세부 동작(조회, 검증, 저장 등)은 별도 메서드로 분리
+- `execute` 메서드가 유일한 **public** 진입점
+- 세부 동작(조회, 검증, 저장, 이벤트 발행 등)은 반드시 **`private` 메서드**로 분리
+- 같은 로직이 다른 UseCase에 중복되더라도 각 UseCase 내부 private 메서드로 구현 (공유 X)
 - 메서드마다 JSDoc 작성 (execute 포함)
 - Props 인터페이스는 파일 하단에 선언
 

@@ -10,7 +10,7 @@ interface IErrorResponse {
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
+  catch(exception: HttpException, host: ArgumentsHost): void {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
@@ -20,33 +20,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const error: IErrorResponse =
       typeof exceptionResponse === 'string' ? { message: exceptionResponse } : (exceptionResponse as IErrorResponse);
 
-    const isUnAuthorized = statusCode === HttpStatus.UNAUTHORIZED;
-    const isBadRequest = statusCode === HttpStatus.BAD_REQUEST;
-    const isTooManyRequests = statusCode === HttpStatus.TOO_MANY_REQUESTS;
+    const errorCodeByStatus: Record<number, string> = {
+      [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED_KEY',
+      [HttpStatus.BAD_REQUEST]: 'INVALID_REQUEST',
+      [HttpStatus.TOO_MANY_REQUESTS]: 'TOO_MANY_REQUESTS',
+    };
 
-    let errorCode: string;
+    const errorCode = error.errorCode ?? errorCodeByStatus[statusCode] ?? 'UNDEFINED_ERROR_CODE';
 
-    if (error.errorCode) {
-      errorCode = error.errorCode;
-    } else {
-      if (isUnAuthorized) {
-        errorCode = 'UNAUTHORIZED_KEY';
-      } else if (isBadRequest) {
-        errorCode = 'INVALID_REQUEST';
-      } else if (isTooManyRequests) {
-        errorCode = 'TOO_MANY_REQUESTS';
-      } else {
-        errorCode = 'UNDEFINED_ERROR_CODE';
-      }
-    }
+    const messageByStatus: Record<number, string> = {
+      [HttpStatus.UNAUTHORIZED]: 'Unauthorized key',
+      [HttpStatus.TOO_MANY_REQUESTS]: 'Too many requests. Please try again later.',
+    };
 
-    const message = isUnAuthorized
-      ? 'Unauthorized key'
-      : isTooManyRequests
-        ? 'Too many requests. Please try again later.'
-        : error.message || 'UNDEFINED_ERROR_MESSAGE';
+    const message = messageByStatus[statusCode] ?? error.message ?? 'UNDEFINED_ERROR_MESSAGE';
 
-    return response.status(statusCode).json({
+    response.status(statusCode).json({
       statusCode,
       errorCode,
       message,
