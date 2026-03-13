@@ -1,11 +1,12 @@
-import { PrismaService } from '@@db';
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { KafkaProducerService } from '@@kafka';
 import { RedisService } from '@@redis';
 import { randomUUID } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { MarkOutboxEventPublishedCommand } from '../application/commands/mark-outbox-event-published.command';
+import { GetPendingOutboxEventsQuery } from '../application/queries/get-pending-outbox-events.query';
 
-const OUTBOX_BATCH_SIZE = 100;
 const OUTBOX_LOCK_KEY = 'ticketing:outbox:publisher:lock';
 const OUTBOX_LOCK_TTL_SECONDS = 30;
 
@@ -14,7 +15,8 @@ export class OutboxPublisherService {
   private readonly logger = new Logger(OutboxPublisherService.name);
 
   constructor(
-    private readonly prisma: PrismaService,
+    private readonly queryBus: TypedQueryBus<GetPendingOutboxEventsQuery>,
+    private readonly commandBus: TypedCommandBus<MarkOutboxEventPublishedCommand>,
     private readonly kafkaProducerService: KafkaProducerService,
     private readonly redisService: RedisService,
   ) {}
@@ -46,11 +48,7 @@ export class OutboxPublisherService {
    * 미발행 Outbox 이벤트 배치 처리
    */
   private async processEvents(): Promise<void> {
-    const events = await this.prisma.outboxEvent.findMany({
-      where: { publishedAt: null },
-      orderBy: { createdAt: 'asc' },
-      take: OUTBOX_BATCH_SIZE,
-    });
+    const events = await this.queryBus.execute(new GetPendingOutboxEventsQuery());
 
     if (events.length === 0) {
       return;
@@ -60,10 +58,7 @@ export class OutboxPublisherService {
       try {
         await this.kafkaProducerService.sendMessage(event.eventType, event.payload, event.aggregateId);
 
-        await this.prisma.outboxEvent.update({
-          where: { id: event.id },
-          data: { publishedAt: new Date() },
-        });
+        await this.commandBus.execute(new MarkOutboxEventPublishedCommand({ eventId: event.id }));
       } catch (error) {
         this.logger.error(`Failed to publish outbox event id=${event.id}: ${error}`);
       }

@@ -10,7 +10,7 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters';
 import { TransformInterceptor } from './common/interceptors';
 
-async function bootstrap() {
+const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const configService = app.get(ConfigService);
@@ -34,7 +34,11 @@ async function bootstrap() {
   if (isProduction) {
     app.use(helmet());
   } else {
-    const config = new DocumentBuilder().setTitle('Ticketing API').setVersion('1.0').build();
+    const config = new DocumentBuilder()
+      .setTitle('Ticketing API')
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer' }, 'accessToken')
+      .build();
 
     const document = SwaggerModule.createDocument(app, config);
 
@@ -51,6 +55,6 @@ async function bootstrap() {
   const port = configService.getOrThrow<number>('PORT');
 
   await app.listen(port);
-}
+};
 
 bootstrap();

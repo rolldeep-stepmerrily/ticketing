@@ -29,6 +29,7 @@ import { AuthHttpController } from './presenter/http/auth.http.controller';
     LogoutUseCase,
     RefreshTokenUseCase,
 
+    /** infrastructure */
     JwtGuard,
   ],
 })

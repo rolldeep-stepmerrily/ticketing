@@ -16,7 +16,7 @@ export class HttpLoggerMiddleware implements NestMiddleware {
   use(req: IRequest, res: Response, next: NextFunction): void {
     const startTime = Date.now();
 
-    if (this.configService.getOrThrow('NODE_ENV') === 'development') {
+    if (['local', 'development'].includes(this.configService.getOrThrow('NODE_ENV'))) {
       // biome-ignore lint/suspicious/noConsole: 개발 환경에서 요청 바디 로깅
       console.log(req.body);
     }

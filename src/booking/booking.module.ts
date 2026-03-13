@@ -1,8 +1,11 @@
 import { JwtGuard } from '@@guards';
 import { Module } from '@nestjs/common';
 import { CancelTicketCommandHandler } from './application/commands/cancel-ticket.command';
+import { ConfirmTicketCommandHandler } from './application/commands/confirm-ticket.command';
 import { CreateTicketCommandHandler } from './application/commands/create-ticket.command';
+import { MarkOutboxEventPublishedCommandHandler } from './application/commands/mark-outbox-event-published.command';
 import { GetMyBookingsQueryHandler } from './application/queries/get-my-bookings.query';
+import { GetPendingOutboxEventsQueryHandler } from './application/queries/get-pending-outbox-events.query';
 import { GetSeatQueryHandler } from './application/queries/get-seat.query';
 import { GetTicketQueryHandler } from './application/queries/get-ticket.query';
 import { CancelBookingUseCase } from './application/use-cases/cancel-booking.use-case';
@@ -19,16 +22,20 @@ import { BookingHttpController } from './presenter/http/booking.http.controller'
     GetSeatQueryHandler,
     GetMyBookingsQueryHandler,
     GetTicketQueryHandler,
+    GetPendingOutboxEventsQueryHandler,
 
     /** command-handlers */
     CreateTicketCommandHandler,
     CancelTicketCommandHandler,
+    ConfirmTicketCommandHandler,
+    MarkOutboxEventPublishedCommandHandler,
 
     /** use-cases */
     CreateBookingUseCase,
     CancelBookingUseCase,
     GetMyBookingsUseCase,
 
+    /** infrastructure */
     BookingConfirmConsumer,
     OutboxPublisherService,
     JwtGuard,
