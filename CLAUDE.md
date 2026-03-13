@@ -81,6 +81,12 @@ pnpm db:generate
 import { AppException, GLOBAL_ERRORS } from '@@exceptions';
 import { User } from '@@decorators';
 import { BaseEntity } from '@@entities';
+import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
+import { RedisService } from '@@redis';
+import { KafkaProducerService } from '@@kafka';
+import { JwtGuard } from '@@guards';
+import { PrismaService } from '@@db';
+import { PrismaClient } from '@@prisma';
 ```
 
 ### CQRS + UseCase 패턴
