@@ -27,6 +27,7 @@ import { ConcertHttpController } from './presenter/http/concert.http.controller'
     GetConcertUseCase,
     GetConcertSeatsUseCase,
 
+    /** infrastructure */
     JwtGuard,
   ],
 })
