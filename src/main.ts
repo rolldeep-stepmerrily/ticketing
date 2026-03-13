@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
@@ -10,13 +11,26 @@ import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/filters';
 import { TransformInterceptor } from './common/interceptors';
 
-async function bootstrap() {
+const bootstrap = async () => {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const configService = app.get(ConfigService);
 
   const nodeEnv = configService.getOrThrow<string>('NODE_ENV');
   const isProduction = nodeEnv === 'production';
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: configService.getOrThrow<string>('KAFKA_CLIENT_ID'),
+        brokers: configService.getOrThrow<string>('KAFKA_BROKERS').split(','),
+      },
+      consumer: {
+        groupId: configService.getOrThrow<string>('KAFKA_GROUP_ID'),
+      },
+    },
+  });
 
   app.useGlobalInterceptors(new TransformInterceptor());
 
@@ -34,7 +48,11 @@ async function bootstrap() {
   if (isProduction) {
     app.use(helmet());
   } else {
-    const config = new DocumentBuilder().setTitle('Ticketing API').setVersion('1.0').build();
+    const config = new DocumentBuilder()
+      .setTitle('Ticketing API')
+      .setVersion('1.0')
+      .addBearerAuth({ type: 'http', scheme: 'bearer' }, 'accessToken')
+      .build();
 
     const document = SwaggerModule.createDocument(app, config);
 
@@ -48,9 +66,11 @@ async function bootstrap() {
     );
   }
 
+  await app.startAllMicroservices();
+
   const port = configService.getOrThrow<number>('PORT');
 
   await app.listen(port);
-}
+};
 
 bootstrap();

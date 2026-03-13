@@ -1,19 +1,22 @@
 import { JwtGuard } from '@@guards';
 import { Module } from '@nestjs/common';
 import { CancelTicketCommandHandler } from './application/commands/cancel-ticket.command';
+import { ConfirmTicketCommandHandler } from './application/commands/confirm-ticket.command';
 import { CreateTicketCommandHandler } from './application/commands/create-ticket.command';
 import { GetMyBookingsQueryHandler } from './application/queries/get-my-bookings.query';
 import { GetSeatQueryHandler } from './application/queries/get-seat.query';
 import { GetTicketQueryHandler } from './application/queries/get-ticket.query';
 import { CancelBookingUseCase } from './application/use-cases/cancel-booking.use-case';
+import { ConfirmBookingUseCase } from './application/use-cases/confirm-booking.use-case';
 import { CreateBookingUseCase } from './application/use-cases/create-booking.use-case';
 import { GetMyBookingsUseCase } from './application/use-cases/get-my-bookings.use-case';
-import { BookingConfirmConsumer } from './booking-confirm.consumer';
+import { HandleBookingCancelledUseCase } from './application/use-cases/handle-booking-cancelled.use-case';
 import { OutboxPublisherService } from './outbox/outbox-publisher.service';
+import { BookingEventController } from './presenter/event/booking.event.controller';
 import { BookingHttpController } from './presenter/http/booking.http.controller';
 
 @Module({
-  controllers: [BookingHttpController],
+  controllers: [BookingHttpController, BookingEventController],
   providers: [
     /** query-handlers */
     GetSeatQueryHandler,
@@ -23,13 +26,16 @@ import { BookingHttpController } from './presenter/http/booking.http.controller'
     /** command-handlers */
     CreateTicketCommandHandler,
     CancelTicketCommandHandler,
+    ConfirmTicketCommandHandler,
 
     /** use-cases */
     CreateBookingUseCase,
     CancelBookingUseCase,
     GetMyBookingsUseCase,
+    ConfirmBookingUseCase,
+    HandleBookingCancelledUseCase,
 
-    BookingConfirmConsumer,
+    /** infrastructure */
     OutboxPublisherService,
     JwtGuard,
   ],
