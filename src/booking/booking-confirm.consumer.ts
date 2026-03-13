@@ -1,8 +1,8 @@
-import { PrismaService } from '@@db';
+import { TypedCommandBus } from '@@cqrs';
 import { KafkaConsumerService } from '@@kafka';
-import { TicketStatus } from '@@prisma';
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { isDefined } from 'class-validator';
+import { ConfirmTicketCommand } from './application/commands/confirm-ticket.command';
 
 const TOPIC_BOOKING_CREATED = 'ticketing.booking.created';
 
@@ -19,7 +19,7 @@ export class BookingConfirmConsumer implements OnModuleInit {
 
   constructor(
     private readonly kafkaConsumerService: KafkaConsumerService,
-    private readonly prisma: PrismaService,
+    private readonly commandBus: TypedCommandBus<ConfirmTicketCommand>,
   ) {}
 
   /**
@@ -46,10 +46,7 @@ export class BookingConfirmConsumer implements OnModuleInit {
 
     const payload = JSON.parse(message.value.toString()) as BookingCreatedPayload;
 
-    await this.prisma.ticket.updateMany({
-      where: { id: payload.ticketId, status: TicketStatus.PENDING },
-      data: { status: TicketStatus.CONFIRMED },
-    });
+    await this.commandBus.execute(new ConfirmTicketCommand({ ticketId: payload.ticketId }));
 
     this.logger.log(`Ticket confirmed: ticketId=${payload.ticketId}`);
   }
