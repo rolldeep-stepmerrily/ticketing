@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
@@ -17,6 +18,19 @@ const bootstrap = async () => {
 
   const nodeEnv = configService.getOrThrow<string>('NODE_ENV');
   const isProduction = nodeEnv === 'production';
+
+  app.connectMicroservice<MicroserviceOptions>({
+    transport: Transport.KAFKA,
+    options: {
+      client: {
+        clientId: configService.getOrThrow<string>('KAFKA_CLIENT_ID'),
+        brokers: configService.getOrThrow<string>('KAFKA_BROKERS').split(','),
+      },
+      consumer: {
+        groupId: configService.getOrThrow<string>('KAFKA_GROUP_ID'),
+      },
+    },
+  });
 
   app.useGlobalInterceptors(new TransformInterceptor());
 
@@ -51,6 +65,8 @@ const bootstrap = async () => {
       }),
     );
   }
+
+  await app.startAllMicroservices();
 
   const port = configService.getOrThrow<number>('PORT');
 

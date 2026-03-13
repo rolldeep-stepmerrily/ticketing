@@ -9,14 +9,16 @@ import { GetPendingOutboxEventsQueryHandler } from './application/queries/get-pe
 import { GetSeatQueryHandler } from './application/queries/get-seat.query';
 import { GetTicketQueryHandler } from './application/queries/get-ticket.query';
 import { CancelBookingUseCase } from './application/use-cases/cancel-booking.use-case';
+import { ConfirmBookingUseCase } from './application/use-cases/confirm-booking.use-case';
 import { CreateBookingUseCase } from './application/use-cases/create-booking.use-case';
 import { GetMyBookingsUseCase } from './application/use-cases/get-my-bookings.use-case';
-import { BookingConfirmConsumer } from './booking-confirm.consumer';
+import { HandleBookingCancelledUseCase } from './application/use-cases/handle-booking-cancelled.use-case';
 import { OutboxPublisherService } from './outbox/outbox-publisher.service';
+import { BookingEventController } from './presenter/event/booking.event.controller';
 import { BookingHttpController } from './presenter/http/booking.http.controller';
 
 @Module({
-  controllers: [BookingHttpController],
+  controllers: [BookingHttpController, BookingEventController],
   providers: [
     /** query-handlers */
     GetSeatQueryHandler,
@@ -34,9 +36,10 @@ import { BookingHttpController } from './presenter/http/booking.http.controller'
     CreateBookingUseCase,
     CancelBookingUseCase,
     GetMyBookingsUseCase,
+    ConfirmBookingUseCase,
+    HandleBookingCancelledUseCase,
 
     /** infrastructure */
-    BookingConfirmConsumer,
     OutboxPublisherService,
     JwtGuard,
   ],
