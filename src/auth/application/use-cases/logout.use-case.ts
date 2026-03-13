@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { isDefined } from 'class-validator';
 import { DeleteRefreshTokenCommand } from '../commands/delete-refresh-token.command';
-import { RefreshTokenUseCase } from './refresh-token.use-case';
+import { TokenService } from '../services/token.service';
 
 @Injectable()
 export class LogoutUseCase {
@@ -12,7 +12,7 @@ export class LogoutUseCase {
     private readonly commandBus: TypedCommandBus<DeleteRefreshTokenCommand>,
     private readonly jwtService: JwtService,
     private readonly redisService: RedisService,
-    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly tokenService: TokenService,
   ) {}
 
   /**
@@ -37,7 +37,7 @@ export class LogoutUseCase {
 
     const decoded = this.jwtService.decode(token) as { exp?: number } | null;
 
-    if (!isDefined(decoded?.exp) || decoded.exp === undefined) {
+    if (!isDefined(decoded?.exp)) {
       return;
     }
 
@@ -56,7 +56,7 @@ export class LogoutUseCase {
       return;
     }
 
-    const tokenHash = this.refreshTokenUseCase.hashToken(refreshToken);
+    const tokenHash = this.tokenService.hashToken(refreshToken);
 
     await this.commandBus.execute(new DeleteRefreshTokenCommand({ tokenHash }));
   }

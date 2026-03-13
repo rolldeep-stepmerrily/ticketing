@@ -27,7 +27,8 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
     if tonumber(stock) <= 0 then
       return 0
     end
-    return redis.call('DECR', KEYS[1])
+    redis.call('DECR', KEYS[1])
+    return 1
   `;
 
   constructor(private readonly configService: ConfigService) {}
@@ -116,7 +117,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    *
    * @param {string} key 재고 키
    * @param {number} initialStock 키 미존재 시 초기 재고값
-   * @returns {Promise<number>} 감소 후 값 (0이면 재고 없음)
+   * @returns {Promise<number>} 성공 시 1, 재고 없음 시 0
    */
   async decrementStock(key: string, initialStock: number): Promise<number> {
     return (await this.client.eval(this.decrementStockScript, 1, key, String(initialStock))) as number;

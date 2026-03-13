@@ -5,6 +5,7 @@ import { CreateUserCommandHandler } from './application/commands/create-user.com
 import { DeleteRefreshTokenCommandHandler } from './application/commands/delete-refresh-token.command';
 import { GetRefreshTokenByHashQueryHandler } from './application/queries/get-refresh-token-by-hash.query';
 import { GetUserByEmailQueryHandler } from './application/queries/get-user-by-email.query';
+import { TokenService } from './application/services/token.service';
 import { LoginUseCase } from './application/use-cases/login.use-case';
 import { LogoutUseCase } from './application/use-cases/logout.use-case';
 import { RefreshTokenUseCase } from './application/use-cases/refresh-token.use-case';
@@ -30,6 +31,7 @@ import { AuthHttpController } from './presenter/http/auth.http.controller';
     RefreshTokenUseCase,
 
     /** infrastructure */
+    TokenService,
     JwtGuard,
   ],
 })

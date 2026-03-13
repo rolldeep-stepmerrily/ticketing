@@ -35,7 +35,11 @@ export class CancelBookingUseCase {
 
     await this.cancelTicket({ ticketId, seatId: ticket.seatId, userId, concertId: ticket.seat.concertId });
 
-    await this.restoreSeatStock(ticket.seatId);
+    try {
+      await this.restoreSeatStock(ticket.seatId);
+    } catch (error) {
+      this.logger.error(`Failed to restore Redis stock for seatId=${ticket.seatId}, manual recovery needed`, error);
+    }
 
     this.logger.log(`Booking cancelled: ticketId=${ticketId}, userId=${userId}`);
   }

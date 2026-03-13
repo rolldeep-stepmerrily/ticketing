@@ -6,13 +6,13 @@ import { isDefined } from 'class-validator';
 import { AUTH_ERRORS } from '../../auth.error';
 import { LoginRequestBodyDto, LoginResponseDataDto } from '../../presenter/http/dto/login.dto';
 import { GetUserByEmailQuery } from '../queries/get-user-by-email.query';
-import { RefreshTokenUseCase } from './refresh-token.use-case';
+import { TokenService } from '../services/token.service';
 
 @Injectable()
 export class LoginUseCase {
   constructor(
     private readonly queryBus: TypedQueryBus<GetUserByEmailQuery>,
-    private readonly refreshTokenUseCase: RefreshTokenUseCase,
+    private readonly tokenService: TokenService,
   ) {}
 
   /**
@@ -29,7 +29,7 @@ export class LoginUseCase {
 
     await this.verifyPassword(password, user.password);
 
-    const tokens = await this.refreshTokenUseCase.issueTokenPair(user.id);
+    const tokens = await this.tokenService.issueTokenPair(user.id);
 
     return LoginResponseDataDto.from(tokens);
   }

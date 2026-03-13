@@ -68,7 +68,7 @@ pnpm db:generate  # Prisma 클라이언트 생성
 src/
 ├── common/
 │   ├── cqrs/         # TypedCommandBus, TypedQueryBus, GlobalCqrsModule
-│   ├── decorators/   # @User, @BooleanQuery, @CatchDatabaseErrors
+│   ├── decorators/   # @User, @BooleanQuery
 │   ├── entities/     # BaseEntity
 │   ├── exceptions/   # AppException, GLOBAL_ERRORS
 │   ├── filters/      # HttpExceptionFilter (전역)

@@ -1,6 +1,7 @@
 import { PrismaService } from '@@db';
 import { SeatStatus, TicketStatus } from '@@prisma';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { BookingEventTopic } from '../../presenter/event/booking.event.topic';
 
 export class CreateTicketCommand extends Command<CreateTicketResult> {
   constructor(public readonly props: CreateTicketCommandProps) {
@@ -35,7 +36,7 @@ export class CreateTicketCommandHandler implements ICommandHandler<CreateTicketC
       await tx.outboxEvent.create({
         data: {
           aggregateId: String(ticket.id),
-          eventType: 'ticketing.booking.created',
+          eventType: BookingEventTopic.BookingCreated,
           payload: { ticketId: ticket.id, userId, seatId, concertId },
         },
       });

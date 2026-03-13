@@ -8,6 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
     const adapter = new PrismaPg({
       connectionString: process.env.DATABASE_URL,
     });
+
     super({
       adapter,
       log: ['local', 'development'].includes(process.env.NODE_ENV ?? 'development')
