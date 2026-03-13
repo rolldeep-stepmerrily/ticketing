@@ -31,7 +31,7 @@ export class LogoutUseCase {
    * @param {string} token 무효화할 Access token
    */
   private async blacklistAccessToken(token: string): Promise<void> {
-    if (!token) {
+    if (!isDefined(token)) {
       return;
     }
 

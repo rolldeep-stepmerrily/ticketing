@@ -1,7 +1,7 @@
 import { Controller, Logger } from '@nestjs/common';
 import { Ctx, EventPattern, KafkaContext } from '@nestjs/microservices';
 import { plainToInstance } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
+import { isDefined, validateOrReject } from 'class-validator';
 import { ConfirmBookingUseCase } from '../../application/use-cases/confirm-booking.use-case';
 import { HandleBookingCancelledUseCase } from '../../application/use-cases/handle-booking-cancelled.use-case';
 import { BookingEventTopic } from './booking.event.topic';
@@ -81,7 +81,7 @@ export class BookingEventController {
   private parseMessage(ctx: KafkaContext, topic: string): Record<string, unknown> | null {
     const valueStr = ctx.getMessage().value?.toString();
 
-    if (!valueStr) {
+    if (!isDefined(valueStr) || valueStr === '') {
       this.logger.warn(`Empty message on topic: ${topic}`);
       return null;
     }
