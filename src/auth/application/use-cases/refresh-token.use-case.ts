@@ -1,24 +1,19 @@
 import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
-import { AppException, GLOBAL_ERRORS } from '@@exceptions';
-import { createHash, randomBytes } from 'node:crypto';
+import { AppException } from '@@exceptions';
 import { Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
 import { isDefined } from 'class-validator';
-import type ms from 'ms';
 import { AUTH_ERRORS } from '../../auth.error';
 import { RefreshTokenResponseDataDto } from '../../presenter/http/dto/refresh-token.dto';
-import { CreateRefreshTokenCommand } from '../commands/create-refresh-token.command';
 import { DeleteRefreshTokenCommand } from '../commands/delete-refresh-token.command';
 import { GetRefreshTokenByHashQuery } from '../queries/get-refresh-token-by-hash.query';
+import { TokenService } from '../services/token.service';
 
 @Injectable()
 export class RefreshTokenUseCase {
   constructor(
     private readonly queryBus: TypedQueryBus<GetRefreshTokenByHashQuery>,
-    private readonly commandBus: TypedCommandBus<CreateRefreshTokenCommand | DeleteRefreshTokenCommand>,
-    private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    private readonly commandBus: TypedCommandBus<DeleteRefreshTokenCommand>,
+    private readonly tokenService: TokenService,
   ) {}
 
   /**
@@ -31,56 +26,14 @@ export class RefreshTokenUseCase {
   async execute(props: RefreshTokenUseCaseProps): Promise<RefreshTokenResponseDataDto> {
     const { refreshToken } = props;
 
-    const tokenHash = this.hashToken(refreshToken);
+    const tokenHash = this.tokenService.hashToken(refreshToken);
     const storedToken = await this.findAndValidateToken(tokenHash);
 
     await this.commandBus.execute(new DeleteRefreshTokenCommand({ tokenHash }));
 
-    const newTokens = await this.issueTokenPair(storedToken.userId);
+    const newTokens = await this.tokenService.issueTokenPair(storedToken.userId);
 
     return RefreshTokenResponseDataDto.from(newTokens);
-  }
-
-  /**
-   * 토큰 해시 계산
-   *
-   * @param {string} token 원본 토큰
-   * @returns {string} SHA-256 해시
-   */
-  hashToken(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
-  }
-
-  /**
-   * 랜덤 Refresh token 생성
-   *
-   * @returns {string} 랜덤 hex 토큰
-   */
-  generateRefreshToken(): string {
-    return randomBytes(64).toString('hex');
-  }
-
-  /**
-   * Access token + Refresh token 쌍 발급 및 DB 저장
-   *
-   * @param {number} userId 사용자 ID
-   * @returns {Promise<TokenPair>} 발급된 토큰 쌍
-   */
-  async issueTokenPair(userId: number): Promise<TokenPair> {
-    const accessExpiresIn = this.configService.getOrThrow<string>('JWT_ACCESS_EXPIRES_IN');
-    const refreshExpiresIn = this.configService.getOrThrow<string>('JWT_REFRESH_EXPIRES_IN');
-
-    const accessToken = this.jwtService.sign({ sub: userId }, { expiresIn: accessExpiresIn as ms.StringValue });
-
-    const rawRefreshToken = this.generateRefreshToken();
-    const refreshTokenHash = this.hashToken(rawRefreshToken);
-    const refreshExpiresAt = this.computeExpiresAt(refreshExpiresIn);
-
-    await this.commandBus.execute(
-      new CreateRefreshTokenCommand({ userId, tokenHash: refreshTokenHash, expiresAt: refreshExpiresAt }),
-    );
-
-    return { accessToken, refreshToken: rawRefreshToken, accessExpiresIn, refreshExpiresIn };
   }
 
   /**
@@ -103,35 +56,8 @@ export class RefreshTokenUseCase {
 
     return { userId: stored.userId };
   }
-
-  /**
-   * 만료 시간 문자열을 Date로 변환
-   *
-   * @param {string} expiresIn 만료 시간 (예: "7d", "15m")
-   * @returns {Date} 만료 시각
-   */
-  private computeExpiresAt(expiresIn: string): Date {
-    const msMap: Record<string, number> = { s: 1000, m: 60_000, h: 3_600_000, d: 86_400_000 };
-    const match = expiresIn.match(/^(\d+)([smhd])$/);
-
-    if (!match) {
-      throw new AppException(GLOBAL_ERRORS.UNKNOWN_ERROR);
-    }
-
-    const value = Number(match[1]);
-    const unit = match[2] as keyof typeof msMap;
-
-    return new Date(Date.now() + value * msMap[unit]);
-  }
 }
 
 interface RefreshTokenUseCaseProps {
   refreshToken: string;
-}
-
-interface TokenPair {
-  accessToken: string;
-  refreshToken: string;
-  accessExpiresIn: string;
-  refreshExpiresIn: string;
 }

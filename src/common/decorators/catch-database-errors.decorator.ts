@@ -19,6 +19,10 @@ export const CatchDatabaseErrors = () => {
         try {
           return await originalMethod.apply(this, args);
         } catch (e) {
+          if (e instanceof AppException) {
+            throw e;
+          }
+
           // biome-ignore lint/suspicious/noConsole: 사용
           console.error(e);
 

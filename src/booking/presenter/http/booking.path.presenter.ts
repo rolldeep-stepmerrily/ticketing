@@ -6,8 +6,4 @@ export const BookingRouter = {
     Cancel: ':ticketId',
     GetMyBookings: 'me',
   },
-  Event: {
-    BookingCreated: 'ticketing.booking.created',
-    BookingCancelled: 'ticketing.booking.cancelled',
-  },
 } as const;

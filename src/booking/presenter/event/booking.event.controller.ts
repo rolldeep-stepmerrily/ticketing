@@ -1,10 +1,10 @@
 import { Controller, Logger } from '@nestjs/common';
 import { Ctx, EventPattern, KafkaContext } from '@nestjs/microservices';
 import { plainToInstance } from 'class-transformer';
-import { validateOrReject } from 'class-validator';
+import { isDefined, validateOrReject } from 'class-validator';
 import { ConfirmBookingUseCase } from '../../application/use-cases/confirm-booking.use-case';
 import { HandleBookingCancelledUseCase } from '../../application/use-cases/handle-booking-cancelled.use-case';
-import { BookingRouter } from '../http/booking.path.presenter';
+import { BookingEventTopic } from './booking.event.topic';
 import { BookingCancelledEventDto } from './dto/booking-cancelled.event.dto';
 import { BookingCreatedEventDto } from './dto/booking-created.event.dto';
 
@@ -22,29 +22,24 @@ export class BookingEventController {
    *
    * @param {KafkaContext} ctx Kafka 컨텍스트
    */
-  @EventPattern(BookingRouter.Event.BookingCreated)
+  @EventPattern(BookingEventTopic.BookingCreated)
   async handleBookingCreated(@Ctx() ctx: KafkaContext): Promise<void> {
-    const valueStr = ctx.getMessage().value?.toString();
+    const raw = this.parseMessage(ctx, BookingEventTopic.BookingCreated);
 
-    if (!valueStr) {
-      this.logger.warn(`Empty message on topic: ${BookingRouter.Event.BookingCreated}`);
-      return;
-    }
-
-    let raw: Record<string, unknown>;
-
-    try {
-      raw = JSON.parse(valueStr) as Record<string, unknown>;
-    } catch {
-      this.logger.error(`Invalid JSON on topic: ${BookingRouter.Event.BookingCreated}`);
+    if (!raw) {
       return;
     }
 
     const payload = plainToInstance(BookingCreatedEventDto, raw);
 
-    await validateOrReject(payload);
+    try {
+      await validateOrReject(payload);
+    } catch (errors) {
+      this.logger.error(`Invalid payload on topic: ${BookingEventTopic.BookingCreated}`, JSON.stringify(errors));
+      return;
+    }
 
-    this.logger.log(`Received event: ${BookingRouter.Event.BookingCreated}, ticketId=${payload.ticketId}`);
+    this.logger.log(`Received event: ${BookingEventTopic.BookingCreated}, ticketId=${payload.ticketId}`);
 
     await this.confirmBookingUseCase.execute({ ticketId: payload.ticketId });
   }
@@ -54,30 +49,48 @@ export class BookingEventController {
    *
    * @param {KafkaContext} ctx Kafka 컨텍스트
    */
-  @EventPattern(BookingRouter.Event.BookingCancelled)
+  @EventPattern(BookingEventTopic.BookingCancelled)
   async handleBookingCancelled(@Ctx() ctx: KafkaContext): Promise<void> {
-    const valueStr = ctx.getMessage().value?.toString();
+    const raw = this.parseMessage(ctx, BookingEventTopic.BookingCancelled);
 
-    if (!valueStr) {
-      this.logger.warn(`Empty message on topic: ${BookingRouter.Event.BookingCancelled}`);
-      return;
-    }
-
-    let raw: Record<string, unknown>;
-
-    try {
-      raw = JSON.parse(valueStr) as Record<string, unknown>;
-    } catch {
-      this.logger.error(`Invalid JSON on topic: ${BookingRouter.Event.BookingCancelled}`);
+    if (!raw) {
       return;
     }
 
     const payload = plainToInstance(BookingCancelledEventDto, raw);
 
-    await validateOrReject(payload);
+    try {
+      await validateOrReject(payload);
+    } catch (errors) {
+      this.logger.error(`Invalid payload on topic: ${BookingEventTopic.BookingCancelled}`, JSON.stringify(errors));
+      return;
+    }
 
-    this.logger.log(`Received event: ${BookingRouter.Event.BookingCancelled}, ticketId=${payload.ticketId}`);
+    this.logger.log(`Received event: ${BookingEventTopic.BookingCancelled}, ticketId=${payload.ticketId}`);
 
     await this.handleBookingCancelledUseCase.execute(payload);
+  }
+
+  /**
+   * Kafka 메시지 파싱 (빈 메시지 및 JSON 파싱 에러 처리)
+   *
+   * @param {KafkaContext} ctx Kafka 컨텍스트
+   * @param {string} topic 토픽명
+   * @returns {Record<string, unknown> | null} 파싱된 객체 또는 null
+   */
+  private parseMessage(ctx: KafkaContext, topic: string): Record<string, unknown> | null {
+    const valueStr = ctx.getMessage().value?.toString();
+
+    if (!isDefined(valueStr) || valueStr === '') {
+      this.logger.warn(`Empty message on topic: ${topic}`);
+      return null;
+    }
+
+    try {
+      return JSON.parse(valueStr) as Record<string, unknown>;
+    } catch {
+      this.logger.error(`Invalid JSON on topic: ${topic}`);
+      return null;
+    }
   }
 }

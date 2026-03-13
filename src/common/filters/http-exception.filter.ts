@@ -29,7 +29,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const errorCode = error.errorCode ?? errorCodeByStatus[statusCode] ?? 'UNDEFINED_ERROR_CODE';
 
     const messageByStatus: Record<number, string> = {
-      [HttpStatus.UNAUTHORIZED]: 'Unauthorized key',
+      [HttpStatus.UNAUTHORIZED]: 'Unauthorized',
       [HttpStatus.TOO_MANY_REQUESTS]: 'Too many requests. Please try again later.',
     };
 

@@ -89,15 +89,26 @@ import { BaseEntity } from '@@entities';
 
 ```
 src/<feature>/
+├── <feature>.module.ts
+├── <feature>.error.ts
 ├── presenter/
-│   └── http/
-│       ├── <feature>.http-controller.ts
+│   ├── http/
+│   │   ├── <feature>.http.controller.ts
+│   │   ├── <feature>.path.presenter.ts
+│   │   └── dto/
+│   └── event/                          # Kafka Consumer (있는 경우)
+│       ├── <feature>.event.controller.ts
+│       ├── <feature>.event.topic.ts
 │       └── dto/
-├── application/
-│   └── use-cases/
-│       ├── <use-case>.handler.ts    # CommandHandler 또는 QueryHandler
-│       └── <use-case>.command.ts    # 또는 query.ts
-└── <feature>.module.ts
+└── application/
+    ├── use-cases/
+    │   └── <action>.use-case.ts
+    ├── commands/
+    │   └── <action>.command.ts
+    ├── queries/
+    │   └── <action>.query.ts
+    └── services/                        # 공유 로직 (있는 경우)
+        └── <name>.service.ts
 ```
 
 ### 에러 처리
@@ -119,8 +130,8 @@ throw new AppException(CONCERT_ERRORS.NOT_FOUND);
 
 ### Kafka 패턴
 
-- **Producer**: `KafkaProducerService.send(topic, message)` — 이벤트 발행
-- **Consumer**: 각 모듈에서 `KafkaProducerService.getProducer()` 또는 별도 Consumer Service 구현
+- **Producer**: Transactional Outbox 패턴 — DB 트랜잭션에서 OutboxEvent 기록, OutboxPublisherService가 주기적으로 Kafka 발행
+- **Consumer**: `@EventPattern` 데코레이터를 사용하는 EventController (`presenter/event/` 디렉토리)
 - Kafka 토픽 이름: `ticketing.<domain>.<event>` (예: `ticketing.booking.created`)
 
 ### Redis 패턴
