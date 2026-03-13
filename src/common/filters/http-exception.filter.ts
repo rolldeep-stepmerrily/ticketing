@@ -21,7 +21,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       typeof exceptionResponse === 'string' ? { message: exceptionResponse } : (exceptionResponse as IErrorResponse);
 
     const errorCodeByStatus: Record<number, string> = {
-      [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED_KEY',
+      [HttpStatus.UNAUTHORIZED]: 'UNAUTHORIZED',
       [HttpStatus.BAD_REQUEST]: 'INVALID_REQUEST',
       [HttpStatus.TOO_MANY_REQUESTS]: 'TOO_MANY_REQUESTS',
     };
