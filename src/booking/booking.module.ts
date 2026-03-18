@@ -4,6 +4,8 @@ import { CancelTicketCommandHandler } from './application/commands/cancel-ticket
 import { ConfirmTicketCommandHandler } from './application/commands/confirm-ticket.command';
 import { CreateTicketCommandHandler } from './application/commands/create-ticket.command';
 import { MarkOutboxEventPublishedCommandHandler } from './application/commands/mark-outbox-event-published.command';
+import { RecordInboxEventCommandHandler } from './application/commands/record-inbox-event.command';
+import { CheckInboxEventExistsQueryHandler } from './application/queries/check-inbox-event-exists.query';
 import { GetMyBookingsQueryHandler } from './application/queries/get-my-bookings.query';
 import { GetPendingOutboxEventsQueryHandler } from './application/queries/get-pending-outbox-events.query';
 import { GetSeatQueryHandler } from './application/queries/get-seat.query';
@@ -25,12 +27,14 @@ import { BookingHttpController } from './presenter/http/booking.http.controller'
     GetMyBookingsQueryHandler,
     GetTicketQueryHandler,
     GetPendingOutboxEventsQueryHandler,
+    CheckInboxEventExistsQueryHandler,
 
     /** command-handlers */
     CreateTicketCommandHandler,
     CancelTicketCommandHandler,
     ConfirmTicketCommandHandler,
     MarkOutboxEventPublishedCommandHandler,
+    RecordInboxEventCommandHandler,
 
     /** use-cases */
     CreateBookingUseCase,

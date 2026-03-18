@@ -84,6 +84,7 @@ model Ticket {
 
 model OutboxEvent {
   id          Int       @id @default(autoincrement())
+  eventId     String    @unique @default(uuid())
   aggregateId String
   eventType   String
   payload     Json
@@ -92,6 +93,15 @@ model OutboxEvent {
 
   @@index([publishedAt])
   @@map("outbox_events")
+}
+
+model InboxEvent {
+  id          String   @id
+  eventType   String
+  processedAt DateTime @default(now())
+
+  @@index([eventType])
+  @@map("inbox_events")
 }
 
 enum SeatGrade {
