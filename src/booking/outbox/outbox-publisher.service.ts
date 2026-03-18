@@ -56,7 +56,9 @@ export class OutboxPublisherService {
 
     for (const event of events) {
       try {
-        await this.kafkaProducerService.sendMessage(event.eventType, event.payload, event.aggregateId);
+        const envelope = { eventId: event.eventId, ...(event.payload as Record<string, unknown>) };
+
+        await this.kafkaProducerService.sendMessage(event.eventType, envelope, event.aggregateId);
 
         await this.commandBus.execute(new MarkOutboxEventPublishedCommand({ eventId: event.id }));
       } catch (error) {

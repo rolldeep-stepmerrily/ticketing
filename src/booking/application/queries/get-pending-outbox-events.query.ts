@@ -32,6 +32,7 @@ export class GetPendingOutboxEventsQueryHandler
 
 interface OutboxEventRecord {
   id: number;
+  eventId: string;
   aggregateId: string;
   eventType: string;
   payload: unknown;

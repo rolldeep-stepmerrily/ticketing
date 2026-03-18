@@ -8,9 +8,7 @@ export class MarkOutboxEventPublishedCommand extends Command<void> {
 }
 
 @CommandHandler(MarkOutboxEventPublishedCommand)
-export class MarkOutboxEventPublishedCommandHandler
-  implements ICommandHandler<MarkOutboxEventPublishedCommand, void>
-{
+export class MarkOutboxEventPublishedCommandHandler implements ICommandHandler<MarkOutboxEventPublishedCommand, void> {
   constructor(private readonly prisma: PrismaService) {}
 
   /**

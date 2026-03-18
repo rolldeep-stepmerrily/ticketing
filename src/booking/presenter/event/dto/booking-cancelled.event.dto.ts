@@ -1,10 +1,13 @@
 import { Type } from 'class-transformer';
-import { IsNumber } from 'class-validator';
+import { IsNumber, IsString } from 'class-validator';
 
 /**
  * ticketing.booking.cancelled 토픽 수신 메시지 DTO
  */
 export class BookingCancelledEventDto {
+  @IsString()
+  eventId!: string;
+
   @IsNumber()
   @Type(() => Number)
   readonly ticketId!: number;
