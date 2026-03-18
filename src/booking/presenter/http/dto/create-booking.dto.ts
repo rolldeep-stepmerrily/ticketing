@@ -9,16 +9,16 @@ export class CreateBookingRequestBodyDto {
 }
 
 export class CreateBookingResponseDataDto {
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '예매 ID' })
   readonly id!: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '좌석 ID' })
   readonly seatId!: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '예매 상태' })
   readonly status!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '예매 생성 일시' })
   readonly createdAt!: Date;
 
   /**

@@ -1,53 +1,53 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class GetConcertsRequestQueryDto {
-  @ApiPropertyOptional({ example: 1, default: 1 })
+  @ApiProperty({ example: 1, default: 1, description: '페이지 번호', required: false })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   readonly page: number = 1;
 
-  @ApiPropertyOptional({ example: 20, default: 20 })
+  @ApiProperty({ example: 20, default: 20, description: '페이지당 항목 수', required: false })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
   readonly limit: number = 20;
 
-  @ApiPropertyOptional({ example: '콘서트' })
+  @ApiProperty({ example: '콘서트', description: '검색어', required: false })
   @IsOptional()
   @IsString()
   readonly search?: string;
 }
 
 export class ConcertItemDto {
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '공연 ID' })
   readonly id!: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '공연 제목' })
   readonly title!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '공연 장소' })
   readonly venue!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '공연 시작 일시' })
   readonly startsAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '공연 종료 일시' })
   readonly endsAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '생성 일시' })
   readonly createdAt!: Date;
 }
 
 export class GetConcertsResponseDataDto {
-  @ApiProperty({ type: [ConcertItemDto] })
+  @ApiProperty({ type: [ConcertItemDto], description: '공연 목록' })
   readonly data!: ConcertItemDto[];
 
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '전체 공연 수' })
   readonly total!: number;
 
   /**

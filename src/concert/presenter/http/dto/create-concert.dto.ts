@@ -64,22 +64,22 @@ export class CreateConcertRequestBodyDto {
 }
 
 export class CreateConcertResponseDataDto {
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '공연 ID' })
   readonly id!: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '공연 제목' })
   readonly title!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '공연 장소' })
   readonly venue!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '공연 시작 일시' })
   readonly startsAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '공연 종료 일시' })
   readonly endsAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '좌석 수' })
   readonly seatCount!: number;
 
   /**

@@ -1,25 +1,25 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class GetConcertResponseDataDto {
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '공연 ID' })
   readonly id!: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '공연 제목' })
   readonly title!: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ type: String, description: '공연 설명', required: false })
   readonly description!: string | null;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '공연 장소' })
   readonly venue!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '공연 시작 일시' })
   readonly startsAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '공연 종료 일시' })
   readonly endsAt!: Date;
 
-  @ApiProperty()
+  @ApiProperty({ type: Date, description: '생성 일시' })
   readonly createdAt!: Date;
 
   /**

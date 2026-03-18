@@ -8,16 +8,16 @@ export class RefreshTokenRequestBodyDto {
 }
 
 export class RefreshTokenResponseDataDto {
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '액세스 토큰' })
   readonly accessToken!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '리프레시 토큰' })
   readonly refreshToken!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '액세스 토큰 만료 시간' })
   readonly accessExpiresIn!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '리프레시 토큰 만료 시간' })
   readonly refreshExpiresIn!: string;
 
   /**
