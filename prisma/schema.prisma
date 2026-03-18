@@ -100,7 +100,7 @@ model InboxEvent {
   eventType   String
   processedAt DateTime @default(now())
 
-  @@index([eventType])
+  @@index([processedAt])
   @@map("inbox_events")
 }
 
