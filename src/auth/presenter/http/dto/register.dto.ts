@@ -18,13 +18,13 @@ export class RegisterRequestBodyDto {
 }
 
 export class RegisterResponseDataDto {
-  @ApiProperty()
+  @ApiProperty({ type: Number, description: '사용자 ID' })
   readonly id!: number;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '이메일' })
   readonly email!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '이름' })
   readonly name!: string;
 
   /**

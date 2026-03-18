@@ -10,17 +10,17 @@ export class BookingCancelledEventDto {
 
   @IsNumber()
   @Type(() => Number)
-  ticketId!: number;
+  readonly ticketId!: number;
 
   @IsNumber()
   @Type(() => Number)
-  userId!: number;
+  readonly userId!: number;
 
   @IsNumber()
   @Type(() => Number)
-  seatId!: number;
+  readonly seatId!: number;
 
   @IsNumber()
   @Type(() => Number)
-  concertId!: number;
+  readonly concertId!: number;
 }
