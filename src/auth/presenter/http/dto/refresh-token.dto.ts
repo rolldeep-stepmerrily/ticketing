@@ -2,22 +2,22 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsString } from 'class-validator';
 
 export class RefreshTokenRequestBodyDto {
-  @ApiProperty({ description: '리프레시 토큰' })
+  @ApiProperty({ type: String, description: '리프레시 토큰' })
   @IsString()
   readonly refreshToken!: string;
 }
 
 export class RefreshTokenResponseDataDto {
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '액세스 토큰' })
   readonly accessToken!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '리프레시 토큰' })
   readonly refreshToken!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '액세스 토큰 만료 시간' })
   readonly accessExpiresIn!: string;
 
-  @ApiProperty()
+  @ApiProperty({ type: String, description: '리프레시 토큰 만료 시간' })
   readonly refreshExpiresIn!: string;
 
   /**
