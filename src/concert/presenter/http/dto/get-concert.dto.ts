@@ -7,7 +7,7 @@ export class GetConcertResponseDataDto {
   @ApiProperty({ type: String, description: '공연 제목' })
   readonly title!: string;
 
-  @ApiProperty({ type: String, description: '공연 설명', required: false })
+  @ApiProperty({ type: String, description: '공연 설명', nullable: true })
   readonly description!: string | null;
 
   @ApiProperty({ type: String, description: '공연 장소' })
