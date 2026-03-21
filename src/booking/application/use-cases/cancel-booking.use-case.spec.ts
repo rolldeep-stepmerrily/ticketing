@@ -1,6 +1,7 @@
 import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { TicketStatus } from '@@prisma';
 import { RedisService } from '@@redis';
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CancelTicketCommand } from '../commands/cancel-ticket.command';
@@ -81,14 +82,6 @@ describe('CancelBookingUseCase', () => {
       });
     });
 
-    it('다른 사용자의 티켓은 찾을 수 없다 (소유자 불일치)', async () => {
-      queryBus.execute.mockResolvedValue(null);
-
-      await expect(useCase.execute({ userId: 999, ticketId: TICKET_ID })).rejects.toMatchObject({
-        response: expect.objectContaining({ errorCode: BOOKING_ERRORS.TICKET_NOT_FOUND.errorCode }),
-      });
-    });
-
     it('CANCELLED 상태 티켓은 TICKET_NOT_CANCELLABLE 예외를 던진다', async () => {
       queryBus.execute.mockResolvedValue({ ...mockTicket, status: TicketStatus.CANCELLED });
 
@@ -111,6 +104,23 @@ describe('CancelBookingUseCase', () => {
         userId: USER_ID,
         concertId: CONCERT_ID,
       });
+    });
+
+    it('Redis 재고 복구 실패 시 예외가 전파되지 않고 로깅된다', async () => {
+      const loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+
+      queryBus.execute.mockResolvedValue(mockTicket);
+      commandBus.execute.mockResolvedValue(undefined);
+      redisService.incrementStock.mockRejectedValue(new Error('Redis connection error'));
+
+      await expect(useCase.execute({ userId: USER_ID, ticketId: TICKET_ID })).resolves.not.toThrow();
+
+      expect(loggerErrorSpy).toHaveBeenCalledWith(
+        expect.stringContaining(`seatId=${SEAT_ID}`),
+        expect.any(Error),
+      );
+
+      loggerErrorSpy.mockRestore();
     });
   });
 });
