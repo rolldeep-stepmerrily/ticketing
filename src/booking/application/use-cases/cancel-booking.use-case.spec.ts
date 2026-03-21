@@ -25,6 +25,7 @@ describe('CancelBookingUseCase', () => {
   let commandBus: jest.Mocked<TypedCommandBus<CancelTicketCommand>>;
   let queryBus: { execute: jest.Mock };
   let redisService: jest.Mocked<RedisService>;
+  let loggerErrorSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -49,6 +50,11 @@ describe('CancelBookingUseCase', () => {
     commandBus = module.get(TypedCommandBus);
     queryBus = module.get(TypedQueryBus);
     redisService = module.get(RedisService);
+    loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
+  });
+
+  afterEach(() => {
+    loggerErrorSpy.mockRestore();
   });
 
   describe('execute', () => {
@@ -82,6 +88,14 @@ describe('CancelBookingUseCase', () => {
       });
     });
 
+    it('다른 사용자의 티켓은 TICKET_NOT_FOUND 예외를 던진다 (소유자 불일치)', async () => {
+      queryBus.execute.mockResolvedValue(null);
+
+      await expect(useCase.execute({ userId: 999, ticketId: TICKET_ID })).rejects.toMatchObject({
+        response: expect.objectContaining({ errorCode: BOOKING_ERRORS.TICKET_NOT_FOUND.errorCode }),
+      });
+    });
+
     it('CANCELLED 상태 티켓은 TICKET_NOT_CANCELLABLE 예외를 던진다', async () => {
       queryBus.execute.mockResolvedValue({ ...mockTicket, status: TicketStatus.CANCELLED });
 
@@ -107,8 +121,6 @@ describe('CancelBookingUseCase', () => {
     });
 
     it('Redis 재고 복구 실패 시 예외가 전파되지 않고 로깅된다', async () => {
-      const loggerErrorSpy = jest.spyOn(Logger.prototype, 'error').mockImplementation();
-
       queryBus.execute.mockResolvedValue(mockTicket);
       commandBus.execute.mockResolvedValue(undefined);
       redisService.incrementStock.mockRejectedValue(new Error('Redis connection error'));
@@ -119,8 +131,6 @@ describe('CancelBookingUseCase', () => {
         expect.stringContaining(`seatId=${SEAT_ID}`),
         expect.any(Error),
       );
-
-      loggerErrorSpy.mockRestore();
     });
   });
 });
