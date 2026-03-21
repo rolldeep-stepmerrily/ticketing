@@ -69,12 +69,11 @@ describe('CreateBookingUseCase', () => {
       expect(commandBus.execute).toHaveBeenCalledWith(
         expect.objectContaining({ props: { userId: USER_ID, seatId: SEAT_ID, concertId: CONCERT_ID } }),
       );
+      expect(redisService.releaseLock).toHaveBeenCalled();
     });
 
     it('좌석이 없으면 SEAT_NOT_FOUND 예외를 던진다', async () => {
       queryBus.execute.mockResolvedValue(null);
-
-      await expect(useCase.execute(executeProps)).rejects.toThrow(AppException);
 
       await expect(useCase.execute(executeProps)).rejects.toMatchObject({
         response: expect.objectContaining({ errorCode: BOOKING_ERRORS.SEAT_NOT_FOUND.errorCode }),
