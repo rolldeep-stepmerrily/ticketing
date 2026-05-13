@@ -18,7 +18,10 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
       brokers: this.configService.getOrThrow<string>('KAFKA_BROKERS').split(','),
     });
 
-    this.producer = kafka.producer();
+    this.producer = kafka.producer({
+      idempotent: true,
+      maxInFlightRequests: 1,
+    });
     await this.producer.connect();
     this.logger.log('Kafka Producer connected');
   }
@@ -33,7 +36,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
    * @param {ProducerRecord} record 발행할 레코드 (topic + messages)
    */
   async send(record: ProducerRecord): Promise<void> {
-    await this.producer.send(record);
+    await this.producer.send({ acks: -1, ...record });
   }
 
   /**
@@ -46,6 +49,7 @@ export class KafkaProducerService implements OnModuleInit, OnModuleDestroy {
   async sendMessage(topic: string, value: unknown, key?: string): Promise<void> {
     await this.producer.send({
       topic,
+      acks: -1,
       messages: [
         {
           key,

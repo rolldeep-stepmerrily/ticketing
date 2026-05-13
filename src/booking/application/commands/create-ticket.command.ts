@@ -3,6 +3,8 @@ import { SeatStatus, TicketStatus } from '@@prisma';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { BookingEventTopic } from '../../presenter/event/booking.event.topic';
 
+const CREATE_TX_TIMEOUT_MS = 15_000;
+
 export class CreateTicketCommand extends Command<CreateTicketResult> {
   constructor(public readonly props: CreateTicketCommandProps) {
     super();
@@ -22,27 +24,30 @@ export class CreateTicketCommandHandler implements ICommandHandler<CreateTicketC
   async execute(command: CreateTicketCommand): Promise<CreateTicketResult> {
     const { userId, seatId, concertId } = command.props;
 
-    return await this.prisma.$transaction(async (tx) => {
-      await tx.seat.update({
-        where: { id: seatId, status: SeatStatus.AVAILABLE },
-        data: { status: SeatStatus.RESERVED },
-      });
+    return await this.prisma.$transaction(
+      async (tx) => {
+        await tx.seat.update({
+          where: { id: seatId, status: SeatStatus.AVAILABLE },
+          data: { status: SeatStatus.RESERVED },
+        });
 
-      const ticket = await tx.ticket.create({
-        data: { userId, seatId, status: TicketStatus.PENDING },
-        select: { id: true, seatId: true, status: true, createdAt: true },
-      });
+        const ticket = await tx.ticket.create({
+          data: { userId, seatId, status: TicketStatus.PENDING },
+          select: { id: true, seatId: true, status: true, createdAt: true },
+        });
 
-      await tx.outboxEvent.create({
-        data: {
-          aggregateId: String(ticket.id),
-          eventType: BookingEventTopic.BookingCreated,
-          payload: { ticketId: ticket.id, userId, seatId, concertId },
-        },
-      });
+        await tx.outboxEvent.create({
+          data: {
+            aggregateId: String(ticket.id),
+            eventType: BookingEventTopic.BookingCreated,
+            payload: { ticketId: ticket.id, userId, seatId, concertId },
+          },
+        });
 
-      return ticket;
-    });
+        return ticket;
+      },
+      { timeout: CREATE_TX_TIMEOUT_MS },
+    );
   }
 }
 

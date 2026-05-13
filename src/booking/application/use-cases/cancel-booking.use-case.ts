@@ -1,14 +1,11 @@
 import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { AppException } from '@@exceptions';
 import { TicketStatus } from '@@prisma';
-import { RedisService } from '@@redis';
 import { Injectable, Logger } from '@nestjs/common';
 import { isDefined } from 'class-validator';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CancelTicketCommand } from '../commands/cancel-ticket.command';
 import { GetTicketQuery } from '../queries/get-ticket.query';
-
-const SEAT_STOCK_KEY_PREFIX = 'ticketing:seat:';
 
 @Injectable()
 export class CancelBookingUseCase {
@@ -17,7 +14,6 @@ export class CancelBookingUseCase {
   constructor(
     private readonly commandBus: TypedCommandBus<CancelTicketCommand>,
     private readonly queryBus: TypedQueryBus<GetTicketQuery>,
-    private readonly redisService: RedisService,
   ) {}
 
   /**
@@ -33,13 +29,9 @@ export class CancelBookingUseCase {
 
     this.validateCancellable(ticket);
 
-    await this.cancelTicket({ ticketId, seatId: ticket.seatId, userId, concertId: ticket.seat.concertId });
-
-    try {
-      await this.restoreSeatStock(ticket.seatId);
-    } catch (error) {
-      this.logger.error(`Failed to restore Redis stock for seatId=${ticket.seatId}, manual recovery needed`, error);
-    }
+    await this.commandBus.execute(
+      new CancelTicketCommand({ ticketId, seatId: ticket.seatId, userId, concertId: ticket.seat.concertId }),
+    );
 
     this.logger.log(`Booking cancelled: ticketId=${ticketId}, userId=${userId}`);
   }
@@ -75,31 +67,6 @@ export class CancelBookingUseCase {
     if (!isCancellable) {
       throw new AppException(BOOKING_ERRORS.TICKET_NOT_CANCELLABLE);
     }
-  }
-
-  /**
-   * DB 트랜잭션으로 티켓 취소, 좌석 복구, Outbox 이벤트 기록
-   *
-   * @param {{ ticketId: number; seatId: number; userId: number; concertId: number }} params 취소 데이터
-   */
-  private async cancelTicket(params: {
-    ticketId: number;
-    seatId: number;
-    userId: number;
-    concertId: number;
-  }): Promise<void> {
-    await this.commandBus.execute(new CancelTicketCommand(params));
-  }
-
-  /**
-   * Redis 좌석 재고 복구 (INCR)
-   *
-   * @param {number} seatId 좌석 ID
-   */
-  private async restoreSeatStock(seatId: number): Promise<void> {
-    const stockKey = `${SEAT_STOCK_KEY_PREFIX}${seatId}:stock`;
-
-    await this.redisService.incrementStock(stockKey);
   }
 }
 

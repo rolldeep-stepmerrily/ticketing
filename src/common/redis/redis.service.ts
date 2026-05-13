@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { isDefined } from 'class-validator';
@@ -18,11 +19,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
   private readonly decrementStockScript = `
     local stock = redis.call('GET', KEYS[1])
     if stock == false then
-      if tonumber(ARGV[1]) <= 0 then
-        return 0
-      end
-      redis.call('SET', KEYS[1], tonumber(ARGV[1]) - 1)
-      return 1
+      return -1
     end
     if tonumber(stock) <= 0 then
       return 0
@@ -71,7 +68,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    await this.client.set(`blacklist:${token}`, '1', 'EX', ttlSeconds);
+    await this.client.set(this.buildBlacklistKey(token), '1', 'EX', ttlSeconds);
   }
 
   /**
@@ -81,7 +78,7 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    * @returns {Promise<boolean>} 블랙리스트 여부
    */
   async isBlacklisted(token: string): Promise<boolean> {
-    const result = await this.client.exists(`blacklist:${token}`);
+    const result = await this.client.exists(this.buildBlacklistKey(token));
 
     return result === 1;
   }
@@ -113,14 +110,12 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
 
   /**
    * 좌석 재고 원자적 감소 (Lua script)
-   * 키가 없으면 initialStock으로 초기화 후 감소
    *
    * @param {string} key 재고 키
-   * @param {number} initialStock 키 미존재 시 초기 재고값
-   * @returns {Promise<number>} 성공 시 1, 재고 없음 시 0
+   * @returns {Promise<number>} 1: 성공, 0: 재고 없음, -1: 키 미초기화
    */
-  async decrementStock(key: string, initialStock: number): Promise<number> {
-    return (await this.client.eval(this.decrementStockScript, 1, key, String(initialStock))) as number;
+  async decrementStock(key: string): Promise<number> {
+    return (await this.client.eval(this.decrementStockScript, 1, key)) as number;
   }
 
   /**
@@ -141,5 +136,58 @@ export class RedisService implements OnModuleInit, OnModuleDestroy {
    */
   async setStock(key: string, stock: number): Promise<void> {
     await this.client.set(key, String(stock));
+  }
+
+  /**
+   * 여러 좌석 재고를 atomic 하게 초기화 (MULTI 트랜잭션)
+   * 하나라도 실패하면 전체 실패로 처리.
+   *
+   * @param {Array<{ key: string; stock: number }>} entries 초기화할 키/값 쌍
+   */
+  async setStocksAtomic(entries: { key: string; stock: number }[]): Promise<void> {
+    if (entries.length === 0) {
+      return;
+    }
+
+    const pipeline = this.client.multi();
+    for (const entry of entries) {
+      pipeline.set(entry.key, String(entry.stock));
+    }
+
+    const results = await pipeline.exec();
+
+    if (!isDefined(results)) {
+      throw new Error('Redis pipeline returned no results');
+    }
+
+    for (const [err] of results) {
+      if (isDefined(err)) {
+        throw err;
+      }
+    }
+  }
+
+  /**
+   * 여러 키 삭제 (best-effort 보상 정리용)
+   *
+   * @param {string[]} keys 삭제할 키 목록
+   */
+  async deleteKeys(keys: string[]): Promise<void> {
+    if (keys.length === 0) {
+      return;
+    }
+
+    await this.client.del(...keys);
+  }
+
+  /**
+   * 블랙리스트 키 생성 (SHA-256 해시로 메모리/보안 개선)
+   *
+   * @param {string} token 원본 토큰
+   * @returns {string} 블랙리스트 키
+   */
+  private buildBlacklistKey(token: string): string {
+    const hash = createHash('sha256').update(token).digest('hex');
+    return `blacklist:${hash}`;
   }
 }
