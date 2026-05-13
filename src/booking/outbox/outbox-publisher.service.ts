@@ -60,7 +60,10 @@ export class OutboxPublisherService {
 
         await this.commandBus.execute(new MarkOutboxEventPublishedCommand({ eventId: event.id }));
       } catch (error) {
-        this.logger.error(`Failed to publish outbox event id=${event.id}: ${error}`);
+        // 같은 aggregateId 내 순서를 보장하기 위해 배치를 중단하고 다음 주기에 재시도합니다.
+        // At-least-once 보장: publishedAt 마킹 실패 시 재발행되며 Consumer는 멱등하게 동작해야 합니다.
+        this.logger.error(`Failed to publish outbox event id=${event.id}, aborting batch`, error);
+        return;
       }
     }
   }

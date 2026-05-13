@@ -8,6 +8,8 @@ import { RegisterRequestBodyDto, RegisterResponseDataDto } from '../../presenter
 import { CreateUserCommand } from '../commands/create-user.command';
 import { GetUserByEmailQuery } from '../queries/get-user-by-email.query';
 
+const PRISMA_UNIQUE_VIOLATION_CODE = 'P2002';
+
 @Injectable()
 export class RegisterUseCase {
   constructor(
@@ -69,8 +71,32 @@ export class RegisterUseCase {
     hashedPassword: string;
     name: string;
   }): Promise<{ id: number; email: string; name: string }> {
-    return await this.commandBus.execute(
-      new CreateUserCommand({ email: props.email, password: props.hashedPassword, name: props.name }),
+    try {
+      return await this.commandBus.execute(
+        new CreateUserCommand({ email: props.email, password: props.hashedPassword, name: props.name }),
+      );
+    } catch (error) {
+      // checkEmailDuplication과 createUser 사이 race condition으로 동일 이메일이 동시에 INSERT 되는 경우
+      // Prisma가 P2002(unique violation) 에러를 던집니다. AUTH 표준 에러로 변환합니다.
+      if (this.isUniqueConstraintViolation(error)) {
+        throw new AppException(AUTH_ERRORS.EMAIL_ALREADY_EXISTS);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Prisma unique constraint(P2002) 에러 여부 판별
+   *
+   * @param {unknown} error 검사할 에러
+   * @returns {boolean} P2002 에러 여부
+   */
+  private isUniqueConstraintViolation(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      (error as { code: unknown }).code === PRISMA_UNIQUE_VIOLATION_CODE
     );
   }
 

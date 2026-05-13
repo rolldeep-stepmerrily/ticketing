@@ -24,7 +24,7 @@ export class GetPendingOutboxEventsQueryHandler
   async execute(_query: GetPendingOutboxEventsQuery): Promise<OutboxEventRecord[]> {
     return await this.prisma.outboxEvent.findMany({
       where: { publishedAt: null },
-      orderBy: { createdAt: 'asc' },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       take: OUTBOX_BATCH_SIZE,
     });
   }

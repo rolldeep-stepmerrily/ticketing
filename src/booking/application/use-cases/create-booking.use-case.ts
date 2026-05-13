@@ -9,9 +9,15 @@ import { CreateBookingResponseDataDto } from '../../presenter/http/dto/create-bo
 import { CreateTicketCommand } from '../commands/create-ticket.command';
 import { GetSeatQuery } from '../queries/get-seat.query';
 
-const LOCK_TTL_SECONDS = 10;
+const LOCK_TTL_SECONDS = 30;
 const SEAT_STOCK_KEY_PREFIX = 'ticketing:seat:';
 const LOCK_KEY_PREFIX = 'ticketing:lock:seat:';
+
+const DECREMENT_RESULT = {
+  SUCCESS: 1,
+  SOLD_OUT: 0,
+  NOT_INITIALIZED: -1,
+} as const;
 
 @Injectable()
 export class CreateBookingUseCase {
@@ -45,7 +51,7 @@ export class CreateBookingUseCase {
     try {
       await this.validateSeatUnderLock(seatId);
 
-      await this.decrementSeatStock(stockKey);
+      await this.decrementSeatStock(stockKey, seatId);
 
       const ticket = await this.createTicket({ userId, seatId, concertId: seat.concertId, stockKey });
 
@@ -111,14 +117,21 @@ export class CreateBookingUseCase {
    * Redis Lua script로 좌석 재고 원자적 감소
    *
    * @param {string} stockKey 재고 키
-   * @throws {AppException} 재고가 없는 경우
+   * @param {number} seatId 좌석 ID (로깅용)
+   * @throws {AppException} 재고 없음 또는 키 미초기화 시
    */
-  private async decrementSeatStock(stockKey: string): Promise<void> {
-    const result = await this.redisService.decrementStock(stockKey, 1);
+  private async decrementSeatStock(stockKey: string, seatId: number): Promise<void> {
+    const result = await this.redisService.decrementStock(stockKey);
 
-    if (result === 0) {
-      throw new AppException(BOOKING_ERRORS.SEAT_NOT_AVAILABLE);
+    if (result === DECREMENT_RESULT.SUCCESS) {
+      return;
     }
+
+    if (result === DECREMENT_RESULT.NOT_INITIALIZED) {
+      this.logger.error(`Stock key not initialized for seatId=${seatId}, key=${stockKey}`);
+    }
+
+    throw new AppException(BOOKING_ERRORS.SEAT_NOT_AVAILABLE);
   }
 
   /**
@@ -138,9 +151,23 @@ export class CreateBookingUseCase {
         new CreateTicketCommand({ userId: props.userId, seatId: props.seatId, concertId: props.concertId }),
       );
     } catch (error) {
-      await this.redisService.incrementStock(props.stockKey);
+      await this.compensateStockOnFailure(props.stockKey, props.seatId);
 
       throw error;
+    }
+  }
+
+  /**
+   * 티켓 생성 실패 시 Redis 재고 복구 (best-effort)
+   *
+   * @param {string} stockKey 재고 키
+   * @param {number} seatId 좌석 ID (로깅용)
+   */
+  private async compensateStockOnFailure(stockKey: string, seatId: number): Promise<void> {
+    try {
+      await this.redisService.incrementStock(stockKey);
+    } catch (error) {
+      this.logger.error(`Failed to compensate Redis stock for seatId=${seatId}`, error);
     }
   }
 

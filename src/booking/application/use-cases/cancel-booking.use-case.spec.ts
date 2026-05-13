@@ -1,6 +1,5 @@
 import { TypedCommandBus, TypedQueryBus } from '@@cqrs';
 import { TicketStatus } from '@@prisma';
-import { RedisService } from '@@redis';
 import { Test, TestingModule } from '@nestjs/testing';
 import { BOOKING_ERRORS } from '../../booking.error';
 import { CancelTicketCommand } from '../commands/cancel-ticket.command';
@@ -23,7 +22,6 @@ describe('CancelBookingUseCase', () => {
   let useCase: CancelBookingUseCase;
   let commandBus: jest.Mocked<TypedCommandBus<CancelTicketCommand>>;
   let queryBus: { execute: jest.Mock };
-  let redisService: jest.Mocked<RedisService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,24 +35,18 @@ describe('CancelBookingUseCase', () => {
           provide: TypedQueryBus,
           useValue: { execute: jest.fn() },
         },
-        {
-          provide: RedisService,
-          useValue: { incrementStock: jest.fn() },
-        },
       ],
     }).compile();
 
     useCase = module.get(CancelBookingUseCase);
     commandBus = module.get(TypedCommandBus);
     queryBus = module.get(TypedQueryBus);
-    redisService = module.get(RedisService);
   });
 
   describe('execute', () => {
-    it('정상 취소 — 티켓을 취소하고 Redis 재고를 복구한다', async () => {
+    it('정상 취소 — CancelTicketCommand로 위임한다 (DB 트랜잭션 + Redis INCR atomic)', async () => {
       queryBus.execute.mockResolvedValue(mockTicket);
       commandBus.execute.mockResolvedValue(undefined);
-      redisService.incrementStock.mockResolvedValue(1);
 
       await useCase.execute({ userId: USER_ID, ticketId: TICKET_ID });
 
@@ -63,7 +55,6 @@ describe('CancelBookingUseCase', () => {
           props: { ticketId: TICKET_ID, seatId: SEAT_ID, userId: USER_ID, concertId: CONCERT_ID },
         }),
       );
-      expect(redisService.incrementStock).toHaveBeenCalledWith(`ticketing:seat:${SEAT_ID}:stock`);
     });
 
     it('PENDING 상태 티켓도 취소할 수 있다', async () => {
